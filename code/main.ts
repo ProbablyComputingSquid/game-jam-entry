@@ -1,8 +1,10 @@
-import kaboom from "kaboom"
+import kaboom, { AreaComp, GameObj } from "kaboom"
 import "kaboom/global"
 
 const SPEED = 320;
-let enemyList = []
+const ENEMY_SPEED = 160
+const BULLET_SPEED = 800
+
 
 // initialize context
 kaboom()
@@ -10,9 +12,12 @@ kaboom()
 // load assets
 loadSprite("bean", "sprites/bean.png")
 loadSprite("enemy", "sprites/unhappy.png")
+loadSprite("ranged", "sprites/ranged.png")
 loadSprite("sword", "sprites/sword.png")
+loadSound("oof", "sounds/oof.mp3")
 
-function addEnemy(enemyHealth = 1) {
+// function to load in a melee enemy
+function addMeleeEnemy(enemyHealth: number = 1) {
 	const enemy = add([
 		sprite("enemy"),
 		pos(rand(0, width()), rand(0, height())),
@@ -20,10 +25,95 @@ function addEnemy(enemyHealth = 1) {
 		body(),
 		health(enemyHealth),
 		"enemy",
+		"melee",
 	])
-	enemy.move(enemy.pos.angle(player.pos), 200)
-	enemyList.push(enemy)
+	enemy.on("death", () => {
+		destroy(enemy)
+	})
+	enemy.onUpdate(() => {
+		if (!player.exists()) return
+		const dir = player.pos.sub(enemy.pos).unit()
+		enemy.move(dir.scale(ENEMY_SPEED))
+	})
 
+	onCollide("player","melee", (enemy, player) => {
+		enemy.hurt(1)
+		player.hurt(1)
+	})
+}
+function addRangedEnemy(enemyHealth: number = 1) {
+	// done
+	const enemy = add([
+		sprite("ranged"),
+		pos(width() - 80, height() - 80),
+		anchor("center"),
+		area(),
+		body(),
+		// This enemy cycle between 3 states, and start from "idle" state
+		state("move", [ "idle", "attack", "move" ]),
+		"ranged",
+		"enemy",
+		health(enemyHealth),
+	])
+	// @ts-ignore
+	// when idle, wait a bit then do the attack
+	enemy.onStateEnter("idle", async () => {
+		await wait(0.5)
+		enemy.enterState("attack")
+	})
+	// When we enter "attack" state, we fire a bullet, and enter "move" state after 1 sec
+	// @ts-ignore
+	enemy.onStateEnter("attack", async () => {
+
+		// Don't do anything if player doesn't exist anymore
+		if (player.exists()) {
+			const dir = player.pos.sub(enemy.pos).unit()
+			add([
+				pos(enemy.pos),
+				move(dir, BULLET_SPEED),
+				rect(12, 12),
+				area(),
+				offscreen({ destroy: true }),
+				anchor("center"),
+				color(BLUE),
+				"bullet",
+			])
+		}
+		await wait(1)
+		enemy.enterState("move")
+	})
+
+	// @ts-ignore
+	// move for two seconds, then idle
+	enemy.onStateEnter("move", async () => {
+		await wait(2)
+		enemy.enterState("idle")
+	})
+
+	// Like .onUpdate() which runs every frame, but only runs when the current state is "move"
+	// Here we move towards the player every frame if the current state is "move"
+	enemy.onStateUpdate("move", () => {
+		if (!player.exists()) return
+		const dir = player.pos.sub(enemy.pos).unit()
+		enemy.move(dir.scale(ENEMY_SPEED))
+	})
+	// when player takes a bullet, they get hurt
+	player.onCollide("bullet", (bullet) => {
+		destroy(bullet)
+		player.hurt(1)
+	})
+
+}
+function addEnemy(enemyHealth = 1, type= 0) {
+	// type 0 is the default enemy, just melee
+	// type 1 is a ranged enemy
+	if (type == 0) {
+		// melee enemy
+		addMeleeEnemy(enemyHealth)
+	} else if (type == 1) {
+		// ranged enemy
+		addRangedEnemy(enemyHealth)
+	}
 }
 
 // add player to screen
@@ -33,7 +123,9 @@ const player = add([
 	pos(80, 40),
 	area(),
 	body(),
-	health(8),
+	health(5),
+	anchor("center"),
+	"player"
 ])
 
 
@@ -53,3 +145,13 @@ onKeyDown("down", () => {
 })
 
 addEnemy();
+addRangedEnemy(1);
+
+player.on("hurt", () => {
+	if (player.hp() <= 0) {
+		player.destroy()
+		addKaboom(player.pos);
+	}
+	play("oof")
+	debug.log("health: " + player.hp())
+})
