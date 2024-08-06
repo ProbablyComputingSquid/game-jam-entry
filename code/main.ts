@@ -1,3 +1,14 @@
+/* todo:
+    * add a player attack
+    * add a ranged enemy (done)
+    * add a ranged player attack
+    * add health bar
+    * add some sort of scoring system
+    * make waves?
+    * inventory system???
+    * shop???
+*/
+
 import kaboom, { AreaComp, GameObj } from "kaboom"
 import "kaboom/global"
 
@@ -11,9 +22,12 @@ kaboom()
 
 // load assets
 loadSprite("bean", "sprites/bean.png")
-loadSprite("enemy", "sprites/unhappy.png")
-loadSprite("ranged", "sprites/ranged.png")
+loadSprite("enemy", "sprites/ben.png")
+loadSprite("ranged", "sprites/ken.png")
+loadSprite("friendly", "sprites/zen.png")
+loadSprite("npc", "sprites/glen.png")
 loadSprite("sword", "sprites/sword.png")
+loadSprite("heart", "sprites/heart.png")
 loadSound("oof", "sounds/oof.mp3")
 
 // function to load in a melee enemy
@@ -146,7 +160,16 @@ onKeyDown("down", () => {
 
 addEnemy();
 addRangedEnemy(1);
-
+function hearts() {
+	for (let i = 0; i < player.hp(); i++) {
+		const heart = add([
+			sprite("heart"),
+			pos(10 + i * 65, 10),
+			"heart",
+		])
+	}
+}
+hearts()
 player.on("hurt", () => {
 	if (player.hp() <= 0) {
 		player.destroy()
@@ -154,4 +177,6 @@ player.on("hurt", () => {
 	}
 	play("oof")
 	debug.log("health: " + player.hp())
+	destroyAll("heart")
+	hearts()
 })
