@@ -15,7 +15,7 @@ import "kaboom/global"
 const SPEED = 320;
 const ENEMY_SPEED = 160
 const BULLET_SPEED = 800
-
+let WeaponDamage = 1
 
 // initialize context
 kaboom()
@@ -134,7 +134,7 @@ function addEnemy(enemyHealth = 1, type= 0) {
 const player = add([
 	// list of components
 	sprite("bean"),
-	pos(80, 40),
+	pos(width() / 2, height() / 2),
 	area(),
 	body(),
 	health(5),
@@ -142,9 +142,40 @@ const player = add([
 	"player"
 ])
 
+const weapon = add([
+	sprite("sword"),
+	pos(player.pos.x + (width()/25), player.pos.y),
+	area(),
+	"weapon",
+	anchor("center"),
+	scale(0.2),
+	rotate(0),
+])
 
-// control stuff
+let weaponDistance = width()/25
+// rotate the weapon to face mouse
+onUpdate("player", () => {
+	let weaponPos = new Vec2()
+    let weaponAngle = Math.atan2(player.pos.y - mousePos().y, player.pos.x - mousePos().x) - Math.PI
+	weaponPos.x = weaponDistance * Math.cos(weaponAngle) + player.pos.x
+	weaponPos.y = weaponDistance * Math.sin(weaponAngle) + player.pos.y
+	weapon.pos = weaponPos
+	weapon.rotateTo(weaponAngle * 180 / Math.PI)
+	//debug.log(weaponAngle)
+})
+// todo: make the weapon move further out to "slash" the enemy
 
+onMousePress(() => {
+
+})
+onCollideUpdate("weapon", "enemy", (weapon, enemy) => {
+	// if player clicked last frame, hurt the enemy
+	if (isMousePressed()) {
+		enemy.hurt(WeaponDamage)
+	}
+})
+
+// player control stuff
 onKeyDown("right", () => {
 	player.move(SPEED, 0)
 })
@@ -159,16 +190,20 @@ onKeyDown("down", () => {
 })
 
 addEnemy();
-addRangedEnemy(1);
+addRangedEnemy();
+
+// deal with the heart bar
 function hearts() {
 	for (let i = 0; i < player.hp(); i++) {
 		const heart = add([
 			sprite("heart"),
 			pos(10 + i * 65, 10),
 			"heart",
+			fixed(),
 		])
 	}
 }
+
 hearts()
 player.on("hurt", () => {
 	if (player.hp() <= 0) {
