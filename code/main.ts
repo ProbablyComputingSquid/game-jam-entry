@@ -17,6 +17,7 @@ const ENEMY_SPEED = 160
 const BULLET_SPEED = 800
 let WeaponDamage = 1
 
+
 // initialize context
 kaboom()
 
@@ -29,7 +30,22 @@ loadSprite("npc", "sprites/glen.png")
 loadSprite("sword", "sprites/sword.png")
 loadSprite("heart", "sprites/heart.png")
 loadSound("oof", "sounds/oof.mp3")
+loadSound("score", "sounds/score.mp3")
+loadSound("slash", "sounds/slash.mp3")
 
+// score text
+const score = add([
+	text("Score: 0"),
+	pos(12, width()/25),
+	color(rgb(0, 0, 0)),
+	{value: 0}
+])
+const enemiesLeftText = add([
+	text("Enemies Left: 0"),
+	pos(12, width()/15),
+	color(rgb(0, 0, 0)),
+	{value: 0}
+])
 // function to load in a melee enemy
 function addMeleeEnemy(enemyHealth: number = 1) {
 	const enemy = add([
@@ -40,9 +56,12 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 		health(enemyHealth),
 		"enemy",
 		"melee",
+		{points: enemyHealth}
 	])
+
 	enemy.on("death", () => {
 		destroy(enemy)
+		enemyDeath(enemy.points)
 	})
 	enemy.onUpdate(() => {
 		if (!player.exists()) return
@@ -51,7 +70,7 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 	})
 
 	onCollide("player","melee", (enemy, player) => {
-		enemy.hurt(1)
+		//enemy.hurt(1)
 		player.hurt(1)
 	})
 }
@@ -64,10 +83,11 @@ function addRangedEnemy(enemyHealth: number = 1) {
 		area(),
 		body(),
 		// This enemy cycle between 3 states, and start from "idle" state
-		state("move", [ "idle", "attack", "move" ]),
-		"ranged",
+		state("move", [ "idle", "attack", "move", "dead" ]),
 		"enemy",
+		"ranged",
 		health(enemyHealth),
+		{points: enemyHealth*3}
 	])
 	// @ts-ignore
 	// when idle, wait a bit then do the attack
@@ -80,7 +100,7 @@ function addRangedEnemy(enemyHealth: number = 1) {
 	enemy.onStateEnter("attack", async () => {
 
 		// Don't do anything if player doesn't exist anymore
-		if (player.exists()) {
+		if (player.exists() && enemy.exists()) {
 			const dir = player.pos.sub(enemy.pos).unit()
 			add([
 				pos(enemy.pos),
@@ -115,6 +135,13 @@ function addRangedEnemy(enemyHealth: number = 1) {
 	player.onCollide("bullet", (bullet) => {
 		destroy(bullet)
 		player.hurt(1)
+	})
+
+
+	enemy.on("death", () => {
+		enemy.enterState("dead")
+		enemyDeath(enemy.points)
+		destroy(enemy)
 	})
 
 }
@@ -163,10 +190,17 @@ onUpdate("player", () => {
 	weapon.rotateTo(weaponAngle * 180 / Math.PI)
 	//debug.log(weaponAngle)
 })
-// todo: make the weapon move further out to "slash" the enemy
+
 
 onMousePress(() => {
-
+	// if player clicked last frame, hurt the enemy
+	//weaponDistance = width()/17.5
+	play("slash")
+	// tween the weapon movement
+	tween(width()/25, width()/17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+	wait(0.1, () => {
+		tween(width()/17.5, width()/25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+	})
 })
 onCollideUpdate("weapon", "enemy", (weapon, enemy) => {
 	// if player clicked last frame, hurt the enemy
@@ -176,21 +210,20 @@ onCollideUpdate("weapon", "enemy", (weapon, enemy) => {
 })
 
 // player control stuff
-onKeyDown("right", () => {
+onKeyDown("d", () => {
 	player.move(SPEED, 0)
 })
-onKeyDown("left", () => {
+onKeyDown("a", () => {
 	player.move(-SPEED, 0)
 })
-onKeyDown("up", () => {
+onKeyDown("w", () => {
 	player.move(0, -SPEED)
 })
-onKeyDown("down", () => {
+onKeyDown("s", () => {
 	player.move(0, SPEED)
 })
 
-addEnemy();
-addRangedEnemy();
+
 
 // deal with the heart bar
 function hearts() {
@@ -201,6 +234,30 @@ function hearts() {
 			"heart",
 			fixed(),
 		])
+	}
+}
+
+// deal with the score
+
+function updateScore(amount: number) {
+	score.value += amount
+	score.text = "Score:" + score.value
+
+}
+
+// deal with the enemy death
+
+// prevent goofy async stuff
+let spawnedWave= false
+function enemyDeath(points: number) {
+	enemiesLeft--
+	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
+	updateScore(points)
+	play("score")
+	if (enemiesLeft == 0 && !spawnedWave) {
+		spawnedWave = true
+		currentWave+=1;
+		spawnWave(currentWave)
 	}
 }
 
@@ -215,3 +272,19 @@ player.on("hurt", () => {
 	destroyAll("heart")
 	hearts()
 })
+
+let enemiesLeft = 0
+let currentWave = 1
+function spawnWave(difficulty:number) {
+
+	for (let i = 0; i < difficulty * 2; i++) {
+		let enemy_health = Math.round(rand(difficulty,difficulty * 2))
+		let enemy_type = Number(Math.round(rand(0,2)) == 2) // makes a 1/3 chance of a ranged enemy (type 1)
+		addEnemy(enemy_health, enemy_type)
+
+		enemiesLeft++
+	}
+
+}
+spawnWave(currentWave)
+
