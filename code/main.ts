@@ -8,7 +8,7 @@
     * inventory system???
     * shop???
 */
-
+//@ts-ignore
 import kaboom, { AreaComp, GameObj } from "kaboom"
 import "kaboom/global"
 
@@ -228,6 +228,7 @@ onKeyDown("s", () => {
 // deal with the heart bar
 function hearts() {
 	for (let i = 0; i < player.hp(); i++) {
+		//@ts-ignore
 		const heart = add([
 			sprite("heart"),
 			pos(10 + i * 65, 10),
@@ -250,7 +251,7 @@ function updateScore(amount: number) {
 // prevent goofy async stuff
 let spawnedWave= false
 function enemyDeath(points: number) {
-	enemiesLeft--
+	enemiesLeft-=1
 	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
 	updateScore(points)
 	play("score")
@@ -279,13 +280,15 @@ let baseEnemies = 5
 let scaling = 1.2
 function spawnWave(difficulty:number) {
 	// spawn a wave
-	enemiesLeft = (baseEnemies * difficulty) + (scaling * difficulty)
+	enemiesLeft = Math.floor((baseEnemies * difficulty) + (scaling * difficulty))
 	for (let i = 0; i < enemiesLeft; i++) {
 		addEnemy(
 			Math.round(rand(difficulty, difficulty*scaling)), // health
 			i % 3 == 0 ? 1 : 0 // 1 in 3 chance of range enemy
 		)
 	}
+	// done spawning waves
+	spawnedWave = false
 
 }
 spawnWave(currentWave)
