@@ -275,14 +275,16 @@ player.on("hurt", () => {
 
 let enemiesLeft = 0
 let currentWave = 1
+let baseEnemies = 5
+let scaling = 1.2
 function spawnWave(difficulty:number) {
-
-	for (let i = 0; i < difficulty * 2; i++) {
-		let enemy_health = Math.round(rand(difficulty,difficulty * 2))
-		let enemy_type = Number(Math.round(rand(0,2)) == 2) // makes a 1/3 chance of a ranged enemy (type 1)
-		addEnemy(enemy_health, enemy_type)
-
-		enemiesLeft++
+	// spawn a wave
+	enemiesLeft = (baseEnemies * difficulty) + (scaling * difficulty)
+	for (let i = 0; i < enemiesLeft; i++) {
+		addEnemy(
+			Math.round(rand(difficulty, difficulty*scaling)), // health
+			i % 3 == 0 ? 1 : 0 // 1 in 3 chance of range enemy
+		)
 	}
 
 }
