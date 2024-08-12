@@ -46,6 +46,12 @@ const enemiesLeftText = add([
 	color(rgb(0, 0, 0)),
 	{value: 0}
 ])
+const waveText = add([
+	text("Wave: 1"),
+	pos(12, width()/10),
+	color(rgb(0, 0, 0)),
+	{value: 1}
+])
 // function to load in a melee enemy
 function addMeleeEnemy(enemyHealth: number = 1) {
 	const enemy = add([
@@ -56,12 +62,19 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 		health(enemyHealth),
 		"enemy",
 		"melee",
-		{points: enemyHealth}
+		{
+			points: enemyHealth,
+			alive: true
+		}
 	])
 
 	enemy.on("death", () => {
-		destroy(enemy)
-		enemyDeath(enemy.points)
+		if (enemy.alive) {
+			debug.log("enemy died")
+			enemy.alive=false
+			destroy(enemy)
+			enemyDeath(enemy.points)
+		}
 	})
 	enemy.onUpdate(() => {
 		if (!player.exists()) return
@@ -69,10 +82,6 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 		enemy.move(dir.scale(ENEMY_SPEED))
 	})
 
-	onCollide("player","melee", (enemy, player) => {
-		//enemy.hurt(1)
-		player.hurt(1)
-	})
 }
 function addRangedEnemy(enemyHealth: number = 1) {
 	// done
@@ -148,12 +157,11 @@ function addRangedEnemy(enemyHealth: number = 1) {
 function addEnemy(enemyHealth = 1, type= 0) {
 	// type 0 is the default enemy, just melee
 	// type 1 is a ranged enemy
-	if (type == 0) {
+	if (type == 1) {
 		// melee enemy
-		addMeleeEnemy(enemyHealth)
-	} else if (type == 1) {
-		// ranged enemy
 		addRangedEnemy(enemyHealth)
+	} else {
+		addMeleeEnemy(enemyHealth)
 	}
 }
 
@@ -169,6 +177,10 @@ const player = add([
 	"player"
 ])
 
+onCollide("player","melee", () => {
+	player.hurt(1)
+	debug.log("ow")
+})
 const weapon = add([
 	sprite("sword"),
 	pos(player.pos.x + (width()/25), player.pos.y),
@@ -256,9 +268,10 @@ function enemyDeath(points: number) {
 	updateScore(points)
 	play("score")
 	if (enemiesLeft == 0 && !spawnedWave) {
+		debug.log("wave completed!")
 		spawnedWave = true
 		currentWave+=1;
-		spawnWave(currentWave)
+		spawnWave()
 	}
 }
 
@@ -277,13 +290,17 @@ player.on("hurt", () => {
 let enemiesLeft = 0
 let currentWave = 1
 let baseEnemies = 5
-let scaling = 1.2
-function spawnWave(difficulty:number) {
+let difficulty = 1.2
+function spawnWave() {
 	// spawn a wave
-	enemiesLeft = Math.floor((baseEnemies * difficulty) + (scaling * difficulty))
-	for (let i = 0; i < enemiesLeft; i++) {
+	debug.log("new wave!")
+	enemiesLeft = Math.floor((baseEnemies * currentWave) + (difficulty * currentWave))
+	let enemyNumber = enemiesLeft
+	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
+	waveText.text = "Wave: " + currentWave
+	for (let i = 0; i < enemyNumber; i++) {
 		addEnemy(
-			Math.round(rand(difficulty, difficulty*scaling)), // health
+			Math.round(rand(currentWave, currentWave*difficulty)), // health
 			i % 3 == 0 ? 1 : 0 // 1 in 3 chance of range enemy
 		)
 	}
@@ -291,5 +308,5 @@ function spawnWave(difficulty:number) {
 	spawnedWave = false
 
 }
-spawnWave(currentWave)
+spawnWave()
 
