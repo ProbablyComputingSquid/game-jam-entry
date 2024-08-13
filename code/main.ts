@@ -1,10 +1,13 @@
 /* todo:
-    * add a player attack
+    * add a player attack (done)
+    * add improvements
+    * lose screen
+    * wave text
     * add a ranged enemy (done)
     * add a ranged player attack
-    * add health bar
-    * add some sort of scoring system
-    * make waves?
+    * add health bar (done)
+    * add some sort of scoring system (done)
+    * make waves? (done)
     * inventory system???
     * shop???
 */
@@ -29,9 +32,16 @@ loadSprite("friendly", "sprites/zen.png")
 loadSprite("npc", "sprites/glen.png")
 loadSprite("sword", "sprites/sword.png")
 loadSprite("heart", "sprites/heart.png")
+// sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
 loadSound("slash", "sounds/slash.mp3")
+loadSound("level-complete", "sounds/level-complete.mp3")
+loadSound("new-level", "sounds/new-level.mp3")
+loadSound("level-failed", "sounds/level-failed.mp3")
+// font
+loadFont("apl386", "fonts/apl386.ttf")
+loadFont("lemon", "fonts/BubbleLemonDemoOutline.ttf")
 
 // score text
 const score = add([
@@ -70,7 +80,7 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 
 	enemy.on("death", () => {
 		if (enemy.alive) {
-			debug.log("enemy died")
+			//debug.log("enemy died")
 			enemy.alive=false
 			destroy(enemy)
 			enemyDeath(enemy.points)
@@ -174,12 +184,34 @@ const player = add([
 	body(),
 	health(5),
 	anchor("center"),
-	"player"
+	"player",
+	{alive: true}
 ])
+
+// player death event
+
+player.on("death", () => {
+	if (player.alive) {
+		player.alive = false
+		destroy(player)
+		destroy(weapon)
+		addKaboom(player.pos)
+		play("level-failed")
+		const gameOverText = add([
+			text("Game Over!", {
+				font: "lemon",
+			}),
+			pos(center()),
+			anchor("center"),
+			scale(3),
+		])
+
+	}
+})
 
 onCollide("player","melee", () => {
 	player.hurt(1)
-	debug.log("ow")
+	//debug.log("ow")
 })
 const weapon = add([
 	sprite("sword"),
@@ -207,16 +239,18 @@ onUpdate("player", () => {
 onMousePress(() => {
 	// if player clicked last frame, hurt the enemy
 	//weaponDistance = width()/17.5
-	play("slash")
-	// tween the weapon movement
-	tween(width()/25, width()/17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
-	wait(0.1, () => {
-		tween(width()/17.5, width()/25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
-	})
+	if (player.exists()) {
+		play("slash")
+		// tween the weapon movement
+		tween(width()/25, width()/17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+		wait(0.1, () => {
+			tween(width()/17.5, width()/25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+		})
+	}
 })
 onCollideUpdate("weapon", "enemy", (weapon, enemy) => {
 	// if player clicked last frame, hurt the enemy
-	if (isMousePressed()) {
+	if (isMousePressed() && player.exists()) {
 		enemy.hurt(WeaponDamage)
 	}
 })
@@ -277,12 +311,8 @@ function enemyDeath(points: number) {
 
 hearts()
 player.on("hurt", () => {
-	if (player.hp() <= 0) {
-		player.destroy()
-		addKaboom(player.pos);
-	}
 	play("oof")
-	debug.log("health: " + player.hp())
+	//debug.log("health: " + player.hp())
 	destroyAll("heart")
 	hearts()
 })
