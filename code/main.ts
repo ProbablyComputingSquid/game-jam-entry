@@ -12,7 +12,7 @@
     * shop???
 */
 //@ts-ignore
-import kaboom, { AreaComp, GameObj } from "kaboom"
+import kaboom, { AreaComp, GameObj, Vec2} from "kaboom"
 import "kaboom/global"
 
 const SPEED = 320;
@@ -32,6 +32,8 @@ loadSprite("friendly", "sprites/zen.png")
 loadSprite("npc", "sprites/glen.png")
 loadSprite("sword", "sprites/sword.png")
 loadSprite("heart", "sprites/heart.png")
+loadSprite("grave", "sprites/gravestone.png")
+loadSprite("background", "sprites/grass-background.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -39,34 +41,77 @@ loadSound("slash", "sounds/slash.mp3")
 loadSound("level-complete", "sounds/level-complete.mp3")
 loadSound("new-level", "sounds/new-level.mp3")
 loadSound("level-failed", "sounds/level-failed.mp3")
+loadSound("music", "sounds/background-music.mp3")
 // font
 loadFont("apl386", "fonts/apl386.ttf")
 loadFont("lemon", "fonts/BubbleLemonDemoOutline.ttf")
+loadFont("nabana", "fonts/nabana.ttf")
+loadFont("cheri", "fonts/cheri.ttf")
 
+// background
+const background = add([
+	sprite("background"),
+	pos(0, 0),
+	fixed(),
+	z(-1),
+	"background",
+])
+const music = play("music", {
+	loop: true,
+	volume: 0.5
+})
 // score text
 const score = add([
 	text("Score: 0"),
-	pos(12, width()/25),
+	pos(12, width() / 25),
 	color(rgb(0, 0, 0)),
 	{value: 0}
 ])
 const enemiesLeftText = add([
 	text("Enemies Left: 0"),
-	pos(12, width()/15),
+	pos(12, width() / 15),
 	color(rgb(0, 0, 0)),
 	{value: 0}
 ])
 const waveText = add([
 	text("Wave: 1"),
-	pos(12, width()/10),
+	pos(12, width() / 10),
 	color(rgb(0, 0, 0)),
 	{value: 1}
 ])
+
+// distance function
+function distance(pointA: Vec2, pointB: Vec2): number {
+	return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
+}
+function selectSpawn(): Vec2 {
+	const playerPos = player.pos; // Get the player's current position
+	const spawnRadius = 1000; // Define a maximum radius for spawn points
+
+	let spawnPoint = new Vec2();
+	let maxDistance = 0;
+
+	// Try several potential spawn points
+	for (let i = 0; i < 10; i++) {
+		const randomX = Math.random() * spawnRadius * 2 - spawnRadius;
+		const randomY = Math.random() * spawnRadius * 2 - spawnRadius;
+		const potentialPoint = vec2(randomX, randomY);
+
+		const dist = distance(playerPos, potentialPoint);
+
+		// Favor spawn points farther from the player
+		if (dist > maxDistance) {
+			maxDistance = dist;
+			spawnPoint = potentialPoint;
+		}
+	}
+	return spawnPoint;
+}
 // function to load in a melee enemy
 function addMeleeEnemy(enemyHealth: number = 1) {
 	const enemy = add([
 		sprite("enemy"),
-		pos(rand(0, width()), rand(0, height())),
+		pos(selectSpawn()),
 		area(),
 		body(),
 		health(enemyHealth),
@@ -93,11 +138,13 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 	})
 
 }
+
 function addRangedEnemy(enemyHealth: number = 1) {
 	// done
+
 	const enemy = add([
 		sprite("ranged"),
-		pos(width() - 80, height() - 80),
+		pos(selectSpawn()),
 		anchor("center"),
 		area(),
 		body(),
@@ -192,17 +239,27 @@ const player = add([
 
 player.on("death", () => {
 	if (player.alive) {
+		music.stop()
 		player.alive = false
+		addKaboom(player.pos)
+		const grave = add([
+			sprite("grave"),
+			pos(player.pos),
+			scale(0.5),
+			anchor("center")
+		])
 		destroy(player)
 		destroy(weapon)
-		addKaboom(player.pos)
 		play("level-failed")
 		const gameOverText = add([
-			text("Game Over!", {
-				font: "lemon",
+			text("game over", {
+				font: "cheri",
+				size:height()/25,
+				lineSpacing: 80,
 			}),
 			pos(center()),
 			anchor("center"),
+			color(rgb(0, 0, 0)),
 			scale(3),
 		])
 
