@@ -12,7 +12,7 @@
     * shop???
 */
 //@ts-ignore
-import kaboom, { AreaComp, GameObj, Vec2} from "kaboom"
+import kaboom, { AreaComp, GameObj} from "kaboom"
 import "kaboom/global"
 
 const SPEED = 320;
@@ -80,11 +80,11 @@ const waveText = add([
 	{value: 1}
 ])
 
-// distance function
-function distance(pointA: Vec2, pointB: Vec2): number {
+// distance function ONLY FOR VEC2s!!!
+function distance(pointA, pointB): number {
 	return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
 }
-function selectSpawn(): Vec2 {
+function selectSpawn() {
 	const playerPos = player.pos; // Get the player's current position
 	const spawnRadius = 1000; // Define a maximum radius for spawn points
 
