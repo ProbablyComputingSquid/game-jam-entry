@@ -1,13 +1,7 @@
 /* todo:
-    * add a player attack (done)
-    * add improvements
-    * lose screen
+    * add upgrades
     * wave text
-    * add a ranged enemy (done)
     * add a ranged player attack
-    * add health bar (done)
-    * add some sort of scoring system (done)
-    * make waves? (done)
     * inventory system???
     * shop???
 */
@@ -36,6 +30,7 @@ loadSprite("grave", "sprites/gravestone.png")
 loadSprite("background", "sprites/grass-background.png")
 loadSprite("pineapple", "sprites/pineapple.png")
 loadSprite("coin", "sprites/coin.png")
+loadSprite("upgrade", "sprites/jumpy.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -207,10 +202,20 @@ function addRangedEnemy(enemyHealth: number = 1) {
 		const dir = player.pos.sub(enemy.pos).unit()
 		enemy.move(dir.scale(ENEMY_SPEED))
 	})
-
+	// on in 10 chance to drop a pineapple on enemy death (for fun)
 	enemy.on("death", () => {
 		enemy.enterState("dead")
 		enemyDeath(enemy.points, enemy.pos)
+		if (Math.random() < 0.1) {
+			add([
+				sprite("pineapple"),
+				pos(enemy.pos),
+				scale(0.75),
+				body(),
+				area(),
+				"pineapple",
+			])
+		}
 		destroy(enemy)
 	})
 
@@ -240,6 +245,14 @@ const player = add([
 	{alive: true}
 ])
 
+player.setMaxHP(5)
+
+player.onCollide("pineapple", (pineapple) => {
+	destroy(pineapple)
+	player.heal()
+	hearts()
+	burp()
+})
 // when player touches coin, collect it
 player.onCollide("coin", (coin) => {
 	destroy(coin)
@@ -278,7 +291,6 @@ player.on("death", () => {
 			color(rgb(0, 0, 0)),
 			scale(3),
 		])
-
 	}
 })
 
@@ -411,6 +423,21 @@ let difficulty = 1.2
 function spawnWave() {
 	// spawn a wave
 	debug.log("new wave!")
+	const newWaveText = add([
+		text("WAVE " + currentWave, {
+			font: "cheri",
+			size:height()/25,
+			lineSpacing: 80,
+		}),
+		pos(center()),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(3),
+		fadeIn(1),
+		opacity(1),
+		lifespan(2.5, { fade: 0.5 }),
+	])
+
 	enemiesLeft = Math.floor((baseEnemies * currentWave) + (difficulty * currentWave))
 	let enemyNumber = enemiesLeft
 	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
