@@ -34,6 +34,8 @@ loadSprite("sword", "sprites/sword.png")
 loadSprite("heart", "sprites/heart.png")
 loadSprite("grave", "sprites/gravestone.png")
 loadSprite("background", "sprites/grass-background.png")
+loadSprite("pineapple", "sprites/pineapple.png")
+loadSprite("coin", "sprites/coin.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -63,20 +65,30 @@ const music = play("music", {
 // score text
 const score = add([
 	text("Score: 0"),
-	pos(12, width() / 25),
+	pos(12, 24 + height() / 25),
 	color(rgb(0, 0, 0)),
+	z(2),
+	{value: 0}
+])
+const money = add([
+	text("Money: 0"),
+	pos(12, 24 + height() * 2 / 25),
+	color(rgb(0, 0, 0)),
+	z(2),
 	{value: 0}
 ])
 const enemiesLeftText = add([
 	text("Enemies Left: 0"),
-	pos(12, width() / 15),
+	pos(12, 24 + height() * 3 / 25),
 	color(rgb(0, 0, 0)),
+	z(2),
 	{value: 0}
 ])
 const waveText = add([
 	text("Wave: 1"),
-	pos(12, width() / 10),
+	pos(12, 24 + height()  * 4 / 25),
 	color(rgb(0, 0, 0)),
+	z(2),
 	{value: 1}
 ])
 
@@ -128,7 +140,7 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 			//debug.log("enemy died")
 			enemy.alive=false
 			destroy(enemy)
-			enemyDeath(enemy.points)
+			enemyDeath(enemy.points, enemy.pos)
 		}
 	})
 	enemy.onUpdate(() => {
@@ -141,7 +153,6 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 
 function addRangedEnemy(enemyHealth: number = 1) {
 	// done
-
 	const enemy = add([
 		sprite("ranged"),
 		pos(selectSpawn()),
@@ -164,7 +175,6 @@ function addRangedEnemy(enemyHealth: number = 1) {
 	// When we enter "attack" state, we fire a bullet, and enter "move" state after 1 sec
 	// @ts-ignore
 	enemy.onStateEnter("attack", async () => {
-
 		// Don't do anything if player doesn't exist anymore
 		if (player.exists() && enemy.exists()) {
 			const dir = player.pos.sub(enemy.pos).unit()
@@ -197,20 +207,15 @@ function addRangedEnemy(enemyHealth: number = 1) {
 		const dir = player.pos.sub(enemy.pos).unit()
 		enemy.move(dir.scale(ENEMY_SPEED))
 	})
-	// when player takes a bullet, they get hurt
-	player.onCollide("bullet", (bullet) => {
-		destroy(bullet)
-		player.hurt(1)
-	})
-
 
 	enemy.on("death", () => {
 		enemy.enterState("dead")
-		enemyDeath(enemy.points)
+		enemyDeath(enemy.points, enemy.pos)
 		destroy(enemy)
 	})
 
 }
+
 function addEnemy(enemyHealth = 1, type= 0) {
 	// type 0 is the default enemy, just melee
 	// type 1 is a ranged enemy
@@ -235,8 +240,19 @@ const player = add([
 	{alive: true}
 ])
 
-// player death event
+// when player touches coin, collect it
+player.onCollide("coin", (coin) => {
+	destroy(coin)
+	updateMoney(coin.value)
+	play("score")
+})
 
+// when player takes a bullet, they get hurt
+player.onCollide("bullet", (bullet) => {
+	destroy(bullet)
+	player.hurt(1)
+})
+// player death event
 player.on("death", () => {
 	if (player.alive) {
 		music.stop()
@@ -326,8 +342,6 @@ onKeyDown("s", () => {
 	player.move(0, SPEED)
 })
 
-
-
 // deal with the heart bar
 function hearts() {
 	for (let i = 0; i < player.hp(); i++) {
@@ -337,23 +351,39 @@ function hearts() {
 			pos(10 + i * 65, 10),
 			"heart",
 			fixed(),
+			z(2),
 		])
 	}
 }
 
 // deal with the score
-
 function updateScore(amount: number) {
 	score.value += amount
 	score.text = "Score:" + score.value
+}
+// money update
 
+function updateMoney(amount: number) {
+	money.value += amount
+	money.text = "Money:" + money.value
 }
 
 // deal with the enemy death
-
-// prevent goofy async stuff
-let spawnedWave= false
-function enemyDeath(points: number) {
+let spawnedWave= false // prevent goofy async stuff
+function enemyDeath(points: number, position) {
+	// todo: make more valuable coins
+	let coins = Math.floor(Math.random() * points) + 1
+	for (let i = 0; i < coins; i++) {
+		add([
+			sprite("coin"),
+			pos(position),
+			area(),
+			body(),
+			scale(0.5),
+			"coin",
+			{value: 1},
+		])
+	}
 	enemiesLeft-=1
 	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
 	updateScore(points)
