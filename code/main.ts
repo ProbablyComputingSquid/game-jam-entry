@@ -6,7 +6,7 @@
     * shop???
 */
 //@ts-ignore
-import kaboom, { AreaComp, GameObj} from "kaboom"
+import kaboom, { AnchorComp, AreaComp, GameObj, PosComp, ScaleComp, SpriteComp} from "kaboom"
 import "kaboom/global"
 
 const SPEED = 320;
@@ -51,7 +51,7 @@ loadFont("nabana", "fonts/nabana.ttf")
 loadFont("cheri", "fonts/cheri.ttf")
 
 // background
-const background = add([
+add([
 	sprite("background"),
 	pos(0, 0),
 	fixed(),
@@ -86,66 +86,68 @@ const enemiesLeftText = add([
 ])
 const waveText = add([
 	text("Wave: 1"),
-	pos(12, 24 + height()  * 4 / 25),
+	pos(12, 24 + height() * 4 / 25),
 	color(rgb(0, 0, 0)),
 	z(2),
 	{value: 1}
 ])
+
 // dialouge stuff
 function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
-    let currentDialogueIndex = 0;
+	let currentDialogueIndex = 0;
 
-    const dialogueBox = add([
-        rect(width() - 40, 100),
-        pos(20, height() - 120),
-        outline(2),
-        color(0, 0, 0),
-        opacity(0.8),
-        z(3),
-        "dialogueBox"
-    ]);
+	const dialogueBox = add([
+		rect(width() - 40, 100),
+		pos(20, height() - 120),
+		outline(2),
+		color(0, 0, 0),
+		opacity(0.8),
+		z(3),
+		"dialogueBox"
+	]);
 
-    const speakerText = add([
-        text("", { size: 16, width: width() - 60 }),
-        pos(30, height() - 110),
-        color(255, 255, 255),
-        z(3),
-        "speakerText"
-    ]);
+	const speakerText = add([
+		text("", {size: 16, width: width() - 60}),
+		pos(30, height() - 110),
+		color(255, 255, 255),
+		z(3),
+		"speakerText"
+	]);
 
-    const dialogueText = add([
-        text("", { size: 20, width: width() - 60 }),
-        pos(30, height() - 85),
-        color(255, 255, 255),
-        z(3),
-        "dialogueText"
-    ]);
+	const dialogueText = add([
+		text("", {size: 20, width: width() - 60}),
+		pos(30, height() - 85),
+		color(255, 255, 255),
+		z(3),
+		"dialogueText"
+	]);
 
-    function updateDialogue() {
-        const currentDialogue = dialogues[currentDialogueIndex];
-        speakerText.text = currentDialogue.speaker;
-        dialogueText.text = currentDialogue.text;
-    }
+	function updateDialogue() {
+		const currentDialogue = dialogues[currentDialogueIndex];
+		speakerText.text = currentDialogue.speaker;
+		dialogueText.text = currentDialogue.text;
+	}
 
-    onKeyPress("space", () => {
-        currentDialogueIndex++;
-        if (currentDialogueIndex < dialogues.length) {
-            updateDialogue();
-        } else {
-            destroy(dialogueBox);
-            destroy(speakerText);
-            destroy(dialogueText);
-            if (onComplete) onComplete();
-        }
-    });
+	onKeyPress("space", () => {
+		currentDialogueIndex++;
+		if (currentDialogueIndex < dialogues.length) {
+			updateDialogue();
+		} else {
+			destroy(dialogueBox);
+			destroy(speakerText);
+			destroy(dialogueText);
+			if (onComplete) onComplete();
+		}
+	});
 
-    updateDialogue();
+	updateDialogue();
 }
 
 // distance function ONLY FOR VEC2s!!!
 function distance(pointA, pointB): number {
 	return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
 }
+
 function selectSpawn() {
 	const playerPos = player.pos; // Get the player's current position
 	const spawnRadius = 1000; // Define a maximum radius for spawn points
@@ -169,6 +171,7 @@ function selectSpawn() {
 	}
 	return spawnPoint;
 }
+
 // function to load in a melee enemy
 function addMeleeEnemy(enemyHealth: number = 1) {
 	const enemy = add([
@@ -188,7 +191,7 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 	enemy.on("death", () => {
 		if (enemy.alive) {
 			//debug.log("enemy died")
-			enemy.alive=false
+			enemy.alive = false
 			destroy(enemy)
 			enemyDeath(enemy.points, enemy.pos)
 		}
@@ -210,11 +213,11 @@ function addRangedEnemy(enemyHealth: number = 1) {
 		area(),
 		body(),
 		// This enemy cycle between 3 states, and start from "idle" state
-		state("move", [ "idle", "attack", "move", "dead" ]),
+		state("move", ["idle", "attack", "move", "dead"]),
 		"enemy",
 		"ranged",
 		health(enemyHealth),
-		{points: enemyHealth*3}
+		{points: enemyHealth * 3}
 	])
 	// @ts-ignore
 	// when idle, wait a bit then do the attack
@@ -233,7 +236,7 @@ function addRangedEnemy(enemyHealth: number = 1) {
 				move(dir, BULLET_SPEED),
 				rect(12, 12),
 				area(),
-				offscreen({ destroy: true }),
+				offscreen({destroy: true}),
 				anchor("center"),
 				color(BLUE),
 				"bullet",
@@ -276,7 +279,7 @@ function addRangedEnemy(enemyHealth: number = 1) {
 
 }
 
-function addEnemy(enemyHealth = 1, type= 0) {
+function addEnemy(enemyHealth = 1, type = 0) {
 	// type 0 is the default enemy, just melee
 	// type 1 is a ranged enemy
 	if (type == 1) {
@@ -355,7 +358,7 @@ player.on("death", () => {
 		add([
 			text("game over", {
 				font: "cheri",
-				size:height()/25,
+				size: height() / 25,
 				lineSpacing: 80,
 			}),
 			pos(center()),
@@ -366,7 +369,7 @@ player.on("death", () => {
 		add([
 			text("press space to restart", {
 				font: "cheri",
-				size:height()/25,
+				size: height() / 25,
 				lineSpacing: 80,
 			}),
 			pos(center().sub(0, -100)),
@@ -380,13 +383,13 @@ player.on("death", () => {
 	}
 })
 
-onCollide("player","melee", () => {
+onCollide("player", "melee", () => {
 	player.hurt(1)
 	//debug.log("ow")
 })
 const weapon = add([
 	sprite("sword"),
-	pos(player.pos.x + (width()/25), player.pos.y),
+	pos(player.pos.x + (width() / 25), player.pos.y),
 	area(),
 	"weapon",
 	anchor("center"),
@@ -394,11 +397,11 @@ const weapon = add([
 	rotate(0),
 ])
 
-let weaponDistance = width()/25
+let weaponDistance = width() / 25
 // rotate the weapon to face mouse
 onUpdate("player", () => {
 	let weaponPos = new Vec2()
-    let weaponAngle = Math.atan2(player.pos.y - mousePos().y, player.pos.x - mousePos().x) - Math.PI
+	let weaponAngle = Math.atan2(player.pos.y - mousePos().y, player.pos.x - mousePos().x) - Math.PI
 	weaponPos.x = weaponDistance * Math.cos(weaponAngle) + player.pos.x
 	weaponPos.y = weaponDistance * Math.sin(weaponAngle) + player.pos.y
 	weapon.pos = weaponPos
@@ -413,9 +416,9 @@ onMousePress(() => {
 	if (player.exists()) {
 		play("slash")
 		// tween the weapon movement
-		tween(width()/25, width()/17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+		tween(width() / 25, width() / 17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
 		wait(0.1, () => {
-			tween(width()/17.5, width()/25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
+			tween(width() / 17.5, width() / 25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
 		})
 	}
 })
@@ -458,6 +461,7 @@ function updateScore(amount: number) {
 	score.value += amount
 	score.text = "Score:" + score.value
 }
+
 // money update
 
 function updateMoney(amount: number) {
@@ -484,7 +488,7 @@ function enemyDeath(points: number, position) {
 			{value: 1},
 		])
 	}
-	enemiesLeft-=1
+	enemiesLeft -= 1
 	enemiesLeftText.text = "Enemies Left: " + enemiesLeft
 	updateScore(points)
 	play("score")
@@ -503,28 +507,31 @@ player.on("hurt", () => {
 	hearts()
 })
 let swordUpgradeCost = 5
+
 function shopMenu() {
-	const upgrade = add([
+	const swordUpgrade = add([
 		sprite("upgrade"),
-		pos(center()),
+		pos(center().sub(50, 50)),
 		scale(0.5),
 		area(),
-		body(),
 		anchor("center"),
 		"upgrade",
 		"intermission",
 	])
-	const upgrade_dialogue = [
-		{ speaker: "Ben", text: "What is this?" },
-		{ speaker: "Glen - Shopkeeper", text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. " },
-		{ speaker: "Ben", text: "I'll take the GlenBlade" },
-		{ speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins` },
-		{ speaker: "Ben", text: "I'll take it" },
-		{ speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses" },
+	let upgrade_dialogue = [
+		{speaker: "Ben", text: "What is this?"},
+		{
+			speaker: "Glen - Shopkeeper",
+			text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. "
+		},
+		{speaker: "Ben", text: "I'll take the GlenBlade"},
+		{speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
+		{speaker: "Ben", text: "I'll take it"},
+		{speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses"},
 	]
-	const not_enough_money = [
-		{ speaker: "Glen - Shopkeeper", text: "You don't have enough money for that." },
-		{ speaker: "Ben", text: `I only need ${swordUpgradeCost - money.value} more coins!` },
+	let not_enough_money = [
+		{speaker: "Glen - Shopkeeper", text: "You don't have enough money for that."},
+		{speaker: "Ben", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
 	]
 	let playerTouchingUpgrade = false
 	onCollide("player", "upgrade", () => {
@@ -533,7 +540,8 @@ function shopMenu() {
 	onCollideEnd("player", "upgrade", () => {
 		playerTouchingUpgrade = false
 	})
-	onKeyPress("e", () => {
+
+	function doUpgrade(theUpgrade: GameObj<any> | GameObj<SpriteComp | PosComp | AreaComp | AnchorComp | ScaleComp>) {
 		if (playerTouchingUpgrade) {
 			playerTouchingUpgrade = false
 			if (money.value < swordUpgradeCost) {
@@ -542,13 +550,16 @@ function shopMenu() {
 			} else {
 				showDialogue(upgrade_dialogue, () => {
 					WeaponDamage += 1
-					updateMoney(swordUpgradeCost)
-					destroy(upgrade)
+					updateMoney(-swordUpgradeCost)
+					destroy(theUpgrade)
 					swordUpgradeCost *= 1.75
 					swordUpgradeCost = Math.floor(swordUpgradeCost)
 				})
 			}
 		}
+	}
+	onKeyPress("e", () => {
+		doUpgrade(swordUpgrade)
 	})
 }
 function waveDone() {
