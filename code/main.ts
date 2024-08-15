@@ -13,6 +13,10 @@ const SPEED = 320;
 const ENEMY_SPEED = 160
 const BULLET_SPEED = 800
 let WeaponDamage = 1
+let enemiesLeft = 0
+let currentWave = 0
+let baseEnemies = 5
+let difficulty = 1.2
 
 
 // initialize context
@@ -22,7 +26,7 @@ kaboom()
 loadSprite("bean", "sprites/bean.png")
 loadSprite("enemy", "sprites/ben.png")
 loadSprite("ranged", "sprites/ken.png")
-loadSprite("friendly", "sprites/zen.png")
+loadSprite("friend", "sprites/zen.png")
 loadSprite("npc", "sprites/glen.png")
 loadSprite("sword", "sprites/sword.png")
 loadSprite("heart", "sprites/heart.png")
@@ -37,7 +41,7 @@ loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
 loadSound("slash", "sounds/slash.mp3")
 loadSound("level-complete", "sounds/level-complete.mp3")
-loadSound("new-level", "sounds/new-level.mp3")
+loadSound("new-wave", "sounds/whoosh-drum.mp3")
 loadSound("level-failed", "sounds/level-failed.mp3")
 loadSound("music", "sounds/background-music.mp3")
 // font
@@ -51,7 +55,7 @@ const background = add([
 	sprite("background"),
 	pos(0, 0),
 	fixed(),
-	z(-1),
+	z(-999),
 	"background",
 ])
 const music = play("music", {
@@ -87,6 +91,56 @@ const waveText = add([
 	z(2),
 	{value: 1}
 ])
+// dialouge stuff
+function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
+    let currentDialogueIndex = 0;
+
+    const dialogueBox = add([
+        rect(width() - 40, 100),
+        pos(20, height() - 120),
+        outline(2),
+        color(0, 0, 0),
+        opacity(0.8),
+        z(3),
+        "dialogueBox"
+    ]);
+
+    const speakerText = add([
+        text("", { size: 16, width: width() - 60 }),
+        pos(30, height() - 110),
+        color(255, 255, 255),
+        z(3),
+        "speakerText"
+    ]);
+
+    const dialogueText = add([
+        text("", { size: 20, width: width() - 60 }),
+        pos(30, height() - 85),
+        color(255, 255, 255),
+        z(3),
+        "dialogueText"
+    ]);
+
+    function updateDialogue() {
+        const currentDialogue = dialogues[currentDialogueIndex];
+        speakerText.text = currentDialogue.speaker;
+        dialogueText.text = currentDialogue.text;
+    }
+
+    onKeyPress("space", () => {
+        currentDialogueIndex++;
+        if (currentDialogueIndex < dialogues.length) {
+            updateDialogue();
+        } else {
+            destroy(dialogueBox);
+            destroy(speakerText);
+            destroy(dialogueText);
+            if (onComplete) onComplete();
+        }
+    });
+
+    updateDialogue();
+}
 
 // distance function ONLY FOR VEC2s!!!
 function distance(pointA, pointB): number {
@@ -257,10 +311,27 @@ player.onCollide("pineapple", (pineapple) => {
 // when player touches coin, collect it
 player.onCollide("coin", (coin) => {
 	destroy(coin)
-	updateMoney(coin.value)
 	play("score")
 })
+onDestroy("coin", (coin) => {
+	updateMoney(coin.value)
+})
 
+// player must stay on screen
+onUpdate(() => {
+	if (player.pos.x < 0) {
+		player.pos.x = 0;
+	}
+	if (player.pos.x > width()) {
+		player.pos.x = width();
+	}
+	if (player.pos.y < 0) {
+		player.pos.y = 0;
+	}
+	if (player.pos.y > height()) {
+		player.pos.y = height();
+	}
+});
 // when player takes a bullet, they get hurt
 player.onCollide("bullet", (bullet) => {
 	destroy(bullet)
@@ -272,7 +343,7 @@ player.on("death", () => {
 		music.stop()
 		player.alive = false
 		addKaboom(player.pos)
-		const grave = add([
+		add([
 			sprite("grave"),
 			pos(player.pos),
 			scale(0.5),
@@ -281,7 +352,7 @@ player.on("death", () => {
 		destroy(player)
 		destroy(weapon)
 		play("level-failed")
-		const gameOverText = add([
+		add([
 			text("game over", {
 				font: "cheri",
 				size:height()/25,
@@ -292,6 +363,20 @@ player.on("death", () => {
 			color(rgb(0, 0, 0)),
 			scale(3),
 		])
+		add([
+			text("press space to restart", {
+				font: "cheri",
+				size:height()/25,
+				lineSpacing: 80,
+			}),
+			pos(center().sub(0, -100)),
+			anchor("center"),
+			color(rgb(0, 0, 0)),
+			scale(2),
+		])
+		onKeyPress("space", () => {
+			window.location.reload()
+		})
 	}
 })
 
@@ -358,8 +443,7 @@ onKeyDown("s", () => {
 // deal with the heart bar
 function hearts() {
 	for (let i = 0; i < player.hp(); i++) {
-		//@ts-ignore
-		const heart = add([
+		add([
 			sprite("heart"),
 			pos(10 + i * 65, 10),
 			"heart",
@@ -382,7 +466,7 @@ function updateMoney(amount: number) {
 }
 
 // deal with the enemy death
-let spawnedWave= false // prevent goofy async stuff
+let spawnedWave = false // prevent goofy async stuff
 function enemyDeath(points: number, position) {
 	// todo: make more valuable coins
 	let coins = Math.floor(Math.random() * points) + 1
@@ -390,7 +474,10 @@ function enemyDeath(points: number, position) {
 		add([
 			sprite("coin"),
 			pos(position),
-			area(),
+			area({
+				collisionIgnore: ["coin", "enemy", "bullet", "weapon", "pineapple"]
+			}),
+			z(-1),
 			body(),
 			scale(0.5),
 			"coin",
@@ -415,11 +502,55 @@ player.on("hurt", () => {
 	destroyAll("heart")
 	hearts()
 })
-
-let enemiesLeft = 0
-let currentWave = 0
-let baseEnemies = 5
-let difficulty = 1.2
+let swordUpgradeCost = 5
+function shopMenu() {
+	const upgrade = add([
+		sprite("upgrade"),
+		pos(center()),
+		scale(0.5),
+		area(),
+		body(),
+		anchor("center"),
+		"upgrade",
+		"intermission",
+	])
+	const upgrade_dialogue = [
+		{ speaker: "Ben", text: "What is this?" },
+		{ speaker: "Glen - Shopkeeper", text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. " },
+		{ speaker: "Ben", text: "I'll take the GlenBlade" },
+		{ speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins` },
+		{ speaker: "Ben", text: "I'll take it" },
+		{ speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses" },
+	]
+	const not_enough_money = [
+		{ speaker: "Glen - Shopkeeper", text: "You don't have enough money for that." },
+		{ speaker: "Ben", text: `I only need ${swordUpgradeCost - money.value} more coins!` },
+	]
+	let playerTouchingUpgrade = false
+	onCollide("player", "upgrade", () => {
+		playerTouchingUpgrade = true
+	})
+	onCollideEnd("player", "upgrade", () => {
+		playerTouchingUpgrade = false
+	})
+	onKeyPress("e", () => {
+		if (playerTouchingUpgrade) {
+			playerTouchingUpgrade = false
+			if (money.value < swordUpgradeCost) {
+				showDialogue(not_enough_money)
+				return
+			} else {
+				showDialogue(upgrade_dialogue, () => {
+					WeaponDamage += 1
+					updateMoney(swordUpgradeCost)
+					destroy(upgrade)
+					swordUpgradeCost *= 1.75
+					swordUpgradeCost = Math.floor(swordUpgradeCost)
+				})
+			}
+		}
+	})
+}
 function waveDone() {
 	const button = add([
 		sprite("button"),
@@ -428,19 +559,53 @@ function waveDone() {
 		area(),
 		body(),
 		anchor("center"),
-		"button"
+		"wave-button",
+		"intermission",
+		{clicked: false},
 	])
-	onCollide("button", "player", () => {
-		destroy(button)
+	onClick("wave-button", () => {
+		if (button.clicked) return
+		button.clicked = true
+		destroyAll("intermission")
+		destroyAll("coin")
+
 		spawnWave()
 	})
-
+	const shopkeeper = add([
+		sprite("friend"),
+		pos(center().sub(0, 100)),
+		area(),
+		anchor("center"),
+		"shopkeeper",
+		"npc",
+		"intermission",
+	])
+	const shop_dialogue = [
+		{ speaker: "Glen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
+		{ speaker: "Ben", text: "What do you have in stock?" },
+		{ speaker: "Glen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
+	]
+	let playerTouchingShop = false
+	onCollide("player", "shopkeeper", () => {
+		playerTouchingShop = true
+	})
+	onCollideEnd("player", "shopkeeper", () => {
+		playerTouchingShop = false
+	})
+	onKeyPress("e", () => {
+		if (playerTouchingShop) {
+			playerTouchingShop = false
+			showDialogue(shop_dialogue, () => {
+				shopMenu()
+			})
+		}
+	})
 }
 function spawnWave() {
 	// spawn a wave
 	currentWave+=1;
-	debug.log("new wave!")
-	const newWaveText = add([
+	play("new-wave")
+	add([
 		text("WAVE " + currentWave, {
 			font: "cheri",
 			size:height()/25,
@@ -462,7 +627,7 @@ function spawnWave() {
 	for (let i = 0; i < enemyNumber; i++) {
 		addEnemy(
 			Math.round(rand(currentWave, currentWave*difficulty)), // health
-			i % 3 == 0 ? 1 : 0 // 1 in 3 chance of range enemy
+			i % 3 == 0 ? 1 : 0 // 1 in 3 chance of ranged enemy
 		)
 	}
 	// done spawning waves
