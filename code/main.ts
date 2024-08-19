@@ -36,6 +36,7 @@ loadSprite("pineapple", "sprites/pineapple.png")
 loadSprite("coin", "sprites/coin.png")
 loadSprite("upgrade", "sprites/jumpy.png")
 loadSprite("next-wave-button", "sprites/next-wave.png")
+loadSprite("heal", "sprites/heal.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -318,6 +319,13 @@ player.onCollide("pineapple", (pineapple) => {
 	hearts()
 	burp()
 })
+// healing potion heals you, but more hearts are healed (3)
+player.onCollide("heal", (potion) => {
+    destroy(potion)
+    player.heal(3)
+    hearts()
+    burp()
+})
 // when player touches coin, collect it
 player.onCollide("coin", (coin) => {
 	destroy(coin)
@@ -463,7 +471,19 @@ function hearts() {
 		])
 	}
 }
+hearts()
 
+function spawnHeal(position) {
+	add([
+		sprite("heal"),
+		pos(position),
+		area(),
+		body(),
+		scale(0.1),
+		"heal",
+		"intermission",
+	])
+}
 // deal with the score
 function updateScore(amount: number) {
 	score.value += amount
@@ -479,6 +499,7 @@ function updateMoney(amount: number) {
 
 // deal with the enemy death
 let spawnedWave = false // prevent goofy async stuff
+
 function enemyDeath(points: number, position) {
 	// todo: make more valuable coins
 	let coins = Math.floor(Math.random() * points) + 1
@@ -507,7 +528,6 @@ function enemyDeath(points: number, position) {
 	}
 }
 
-hearts()
 player.on("hurt", () => {
 	play("oof")
 	//debug.log("health: " + player.hp())
@@ -517,7 +537,10 @@ player.on("hurt", () => {
 let swordUpgradeCost = 5
 
 function shopMenu() {
-	const swordUpgradeSprite = add([
+    let touchingSwordUpgrade = false
+    let touchingHealthUpgrade = false
+    let touchingHeal = false
+	add([
 		sprite("upgrade"),
 		pos(center().sub(50, 50)),
 		scale(0.5),
@@ -531,32 +554,32 @@ function shopMenu() {
 	let upgrade_dialogue = [
 		{speaker: "Ren", text: "What is this?"},
 		{
-			speaker: "Glen - Shopkeeper",
-			text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. "
+			speaker: "Zen - Shopkeeper",
+			text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc. "
 		},
-		{speaker: "Ren", text: "I'll take the GlenBlade"},
-		{speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
+		{speaker: "Ren", text: "I'll take the ZenBlade"},
+		{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
 		{speaker: "Ren", text: "I'll take it"},
-		{speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses"},
+		{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses"},
 	]
 	let not_enough_money = [
-		{speaker: "Glen - Shopkeeper", text: "You don't have enough money for that."},
+		{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
 		{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
 	]
 	function updateDialogue() {
 		upgrade_dialogue = [
 			{speaker: "Ren", text: "What is this?"},
 			{
-				speaker: "Glen - Shopkeeper",
-				text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. "
+				speaker: "Zen - Shopkeeper",
+				text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc. "
 			},
-			{speaker: "Ren", text: "I'll take the GlenBlade"},
-			{speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
+			{speaker: "Ren", text: "I'll take the ZenBlade"},
+			{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
 			{speaker: "Ren", text: "I'll take it"},
-			{speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses"},
+			{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses"},
 		]
 		not_enough_money = [
-			{speaker: "Glen - Shopkeeper", text: "You don't have enough money for that."},
+			{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
 			{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
 		]
 	}
@@ -564,32 +587,65 @@ function shopMenu() {
     function cleanupUpgrades() {
         destroyAll("upgrade")
     }
-	function doUpgrade(theUpgrade: GameObj | GameObj<SpriteComp | PosComp | AreaComp | AnchorComp | ScaleComp>) {
+	function doUpgrade(upgrade: String) {
         upgradeListener.cancel()
-        if (money.value >= swordUpgradeCost) {
-            showDialogue(upgrade_dialogue, () => {
-                WeaponDamage += 1
-                updateMoney(-swordUpgradeCost)
-                swordUpgradeCost *= 1.75
-                swordUpgradeCost = Math.floor(swordUpgradeCost)
-                debug.log("i bought the upgrade!")
-                cleanupUpgrades()
-            })
+        if (upgrade == "sword") {
+            if (money.value >= swordUpgradeCost) {
+                showDialogue(upgrade_dialogue, () => {
+                    WeaponDamage += 1
+                    updateMoney(-swordUpgradeCost)
+                    swordUpgradeCost *= 1.75
+                    swordUpgradeCost = Math.floor(swordUpgradeCost)
+                    debug.log("i bought the upgrade!")
+                    cleanupUpgrades()
+                })
+            } else {
+                showDialogue(not_enough_money, () => {
+                    debug.log("not enough money :(")
+                    cleanupUpgrades()
+                })
+            }
+        } else if (upgrade == "health") {
+            // todo: health upgrade
+        } else if (upgrade == "heal") {
+            // todo: healing potion
         } else {
-            showDialogue(not_enough_money, () => {
-                debug.log("not enough money :(")
-                cleanupUpgrades()
-            })
+            debug.log("something went wrong")
         }
         debug.log("upgrade costs: " + swordUpgradeCost)
         updateDialogue()
 	}
+    onCollide("player", "sword_upgrade", () => {
+        touchingSwordUpgrade = true
+    })
+    onCollideEnd("player", "sword_upgrade", () => {
+        touchingSwordUpgrade = false
+    })
+    onCollide("player", "health_upgrade", () => {
+        touchingHealthUpgrade = true
+    })
+    onCollideEnd("player", "health_upgrade", () => {
+        touchingHealthUpgrade = false
+    })
+    onCollide("player", "heal", () => {
+        touchingHeal = true
+    })
+    onCollideEnd("player", "heal", () => {
+        touchingHeal = false
+    })
 	const upgradeListener = onKeyPress("e", () => {
-		doUpgrade(swordUpgradeSprite)
+		if (touchingSwordUpgrade) {
+            doUpgrade("sword")
+        } else if (touchingHealthUpgrade) {
+            doUpgrade("health")
+        } else if (touchingHeal) {
+            doUpgrade("heal")
+        }
 	})
 }
 function waveDone() {
 	destroyAll("coin")
+    // button advance stuff
 	const button = add([
 		sprite("next-wave-button"),
 		pos(center().add(0, height()/2 - 100)),
@@ -606,19 +662,22 @@ function waveDone() {
 		destroyAll("intermission")
 		spawnWave()
 	})
+
+    // shopkeeper stuff
 	const shopkeeper = add([
 		sprite("friend"),
 		pos(center().sub(0, 100)),
 		area(),
+        body(),
 		anchor("center"),
 		"shopkeeper",
 		"npc",
 		"intermission",
 	])
 	const shop_dialogue = [
-		{ speaker: "Glen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
+		{ speaker: "Zen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
 		{ speaker: "Ren", text: "What do you have in stock?" },
-		{ speaker: "Glen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
+		{ speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
 	]
 	let playerTouchingShop = false
 	onCollide("player", "shopkeeper", () => {
@@ -639,7 +698,50 @@ function waveDone() {
 			})
 		}
 	})
+
+    // npc stuff
+    if (Math.random() < 0.33 || true) {
+        const glen = add([
+            sprite("npc"),
+            pos(center().sub(100, 100)),
+            area(),
+            body(),
+            anchor("center"),
+            "npc",
+			"glen",
+            "intermission",
+        ])
+        let glen_dialogue = [
+            {speaker: "???", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."},
+            {speaker: "Ren", text: "Bro what are you saying???"},
+            {speaker: "???", text: "Sorry, that was just placeholder text that the developers gave me. They still haven't removed it."},
+            {speaker: "Ren", text: "What's a developer?"},
+            {speaker: "???", text: "I don't know."},
+            {speaker: "Glen", text: "By the way, My name is Glen."},
+            {speaker: "Ren", text: "Nice to meet you Glen."},
+            {speaker: "Glen", text: "Here, have this healing potion. It's on the house."},
+            {speaker: "Ren", text: "What house?"},
+            {speaker: "Glen", text: "I don't know, I'm homeless. I just sometimes appear here and then disappear, sent off to a black expanse of nothingness. It's boring out there."},
+        ]
+		let touchingGlen = false
+		onCollide("player", "glen", () => {
+			touchingGlen = true
+		})
+		onCollideEnd("player", "glen", () => {
+			touchingGlen = false
+		})
+		const glenListener = onKeyPress("e", () => {
+			if (touchingGlen) {
+				showDialogue(glen_dialogue, () => {
+					spawnHeal(glen.pos)
+				})
+				glenListener.cancel()
+			}
+		})
+
+    }
 }
+
 function spawnWave() {
 	// spawn a wave
 	currentWave+=1;
