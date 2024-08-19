@@ -35,7 +35,7 @@ loadSprite("background", "sprites/grass-background.png")
 loadSprite("pineapple", "sprites/pineapple.png")
 loadSprite("coin", "sprites/coin.png")
 loadSprite("upgrade", "sprites/jumpy.png")
-loadSprite("button", "sprites/button.png")
+loadSprite("next-wave-button", "sprites/next-wave.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -60,7 +60,7 @@ add([
 ])
 const music = play("music", {
 	loop: true,
-	volume: 0.5
+	volume: 0.33
 })
 // score text
 const score = add([
@@ -92,7 +92,7 @@ const waveText = add([
 	{value: 1}
 ])
 
-// dialouge stuff
+// dialogue stuff
 function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
 	let currentDialogueIndex = 0;
 
@@ -148,6 +148,7 @@ function distance(pointA, pointB): number {
 	return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
 }
 
+// finds the farthest spawn point from the player
 function selectSpawn() {
 	const playerPos = player.pos; // Get the player's current position
 	const spawnRadius = 1000; // Define a maximum radius for spawn points
@@ -169,6 +170,8 @@ function selectSpawn() {
 			spawnPoint = potentialPoint;
 		}
 	}
+    // TODO: CHANGE THIS
+    return center().sub(0,200) // DEBUGGING ONLY
 	return spawnPoint;
 }
 
@@ -203,7 +206,7 @@ function addMeleeEnemy(enemyHealth: number = 1) {
 	})
 
 }
-
+// spawns ranged enemy
 function addRangedEnemy(enemyHealth: number = 1) {
 	// done
 	const enemy = add([
@@ -305,6 +308,7 @@ const player = add([
 
 player.setMaxHP(5)
 
+// pineapple heals you
 player.onCollide("pineapple", (pineapple) => {
 	destroy(pineapple)
 	player.heal()
@@ -350,6 +354,8 @@ player.on("death", () => {
 			sprite("grave"),
 			pos(player.pos),
 			scale(0.5),
+            area(),
+            body(),
 			anchor("center")
 		])
 		destroy(player)
@@ -385,7 +391,6 @@ player.on("death", () => {
 
 onCollide("player", "melee", () => {
 	player.hurt(1)
-	//debug.log("ow")
 })
 const weapon = add([
 	sprite("sword"),
@@ -509,66 +514,87 @@ player.on("hurt", () => {
 let swordUpgradeCost = 5
 
 function shopMenu() {
-	const swordUpgrade = add([
+	const swordUpgradeSprite = add([
 		sprite("upgrade"),
 		pos(center().sub(50, 50)),
 		scale(0.5),
 		area(),
+        body(),
 		anchor("center"),
 		"upgrade",
+        "sword_upgrade",
 		"intermission",
 	])
 	let upgrade_dialogue = [
-		{speaker: "Ben", text: "What is this?"},
+		{speaker: "Ren", text: "What is this?"},
 		{
 			speaker: "Glen - Shopkeeper",
 			text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. "
 		},
-		{speaker: "Ben", text: "I'll take the GlenBlade"},
+		{speaker: "Ren", text: "I'll take the GlenBlade"},
 		{speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
-		{speaker: "Ben", text: "I'll take it"},
+		{speaker: "Ren", text: "I'll take it"},
 		{speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses"},
 	]
 	let not_enough_money = [
 		{speaker: "Glen - Shopkeeper", text: "You don't have enough money for that."},
-		{speaker: "Ben", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
+		{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
 	]
-	let playerTouchingUpgrade = false
-	onCollide("player", "upgrade", () => {
-		playerTouchingUpgrade = true
-	})
-	onCollideEnd("player", "upgrade", () => {
-		playerTouchingUpgrade = false
-	})
-
-	function doUpgrade(theUpgrade: GameObj<any> | GameObj<SpriteComp | PosComp | AreaComp | AnchorComp | ScaleComp>) {
-		if (playerTouchingUpgrade) {
-			playerTouchingUpgrade = false
-			if (money.value < swordUpgradeCost) {
-				showDialogue(not_enough_money)
-				return
-			} else {
-				showDialogue(upgrade_dialogue, () => {
-					WeaponDamage += 1
-					updateMoney(-swordUpgradeCost)
-					destroy(theUpgrade)
-					swordUpgradeCost *= 1.75
-					swordUpgradeCost = Math.floor(swordUpgradeCost)
-				})
-			}
-		}
+	function updateDialogue() {
+		upgrade_dialogue = [
+			{speaker: "Ren", text: "What is this?"},
+			{
+				speaker: "Glen - Shopkeeper",
+				text: "It's GlenForged GlenBlade the one of the newest in sword technologies, perfected by my company GlenDustry™ Inc. "
+			},
+			{speaker: "Ren", text: "I'll take the GlenBlade"},
+			{speaker: "Glen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
+			{speaker: "Ren", text: "I'll take it"},
+			{speaker: "Glen - Shopkeeper", text: "Thank you for supporting local businesses"},
+		]
+		not_enough_money = [
+			{speaker: "Glen - Shopkeeper", text: "You don't have enough money for that."},
+			{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
+		]
 	}
-	onKeyPress("e", () => {
-		doUpgrade(swordUpgrade)
+
+    function cleanupUpgrades() {
+        destroyAll("upgrade")
+    }
+	function doUpgrade(theUpgrade: GameObj | GameObj<SpriteComp | PosComp | AreaComp | AnchorComp | ScaleComp>) {
+        upgradeListener.cancel()
+        if (money.value >= swordUpgradeCost) {
+            debug.log("i have" + money.value)
+            debug.log("i need" + swordUpgradeCost)
+
+            showDialogue(upgrade_dialogue, () => {
+                WeaponDamage += 1
+                updateMoney(-swordUpgradeCost)
+                swordUpgradeCost *= 1.75
+                swordUpgradeCost = Math.floor(swordUpgradeCost)
+                debug.log("i bought the upgrade!")
+                cleanupUpgrades()
+            })
+        } else {
+            showDialogue(not_enough_money, () => {
+                debug.log("not enough money :(")
+                cleanupUpgrades()
+            })
+        }
+        debug.log("upgrade costs: " + swordUpgradeCost)
+        updateDialogue()
+	}
+	const upgradeListener = onKeyPress("e", () => {
+		doUpgrade(swordUpgradeSprite)
 	})
 }
 function waveDone() {
+	destroyAll("coin")
 	const button = add([
-		sprite("button"),
-		pos(center()),
+		sprite("next-wave-button"),
+		pos(center().add(0, height()/2 - 100)),
 		scale(0.25),
 		area(),
-		body(),
 		anchor("center"),
 		"wave-button",
 		"intermission",
@@ -578,8 +604,6 @@ function waveDone() {
 		if (button.clicked) return
 		button.clicked = true
 		destroyAll("intermission")
-		destroyAll("coin")
-
 		spawnWave()
 	})
 	const shopkeeper = add([
@@ -593,7 +617,7 @@ function waveDone() {
 	])
 	const shop_dialogue = [
 		{ speaker: "Glen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
-		{ speaker: "Ben", text: "What do you have in stock?" },
+		{ speaker: "Ren", text: "What do you have in stock?" },
 		{ speaker: "Glen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
 	]
 	let playerTouchingShop = false
@@ -602,12 +626,14 @@ function waveDone() {
 	})
 	onCollideEnd("player", "shopkeeper", () => {
 		playerTouchingShop = false
+        shopListener.paused = false
 	})
-	onKeyPress("e", () => {
+	const shopListener = onKeyPress("e", () => {
 		if (playerTouchingShop) {
-			playerTouchingShop = false
+            shopListener.paused = true
 			showDialogue(shop_dialogue, () => {
 				shopMenu()
+                debug.log("entered the shop")
 			})
 		}
 	})
