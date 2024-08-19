@@ -646,6 +646,15 @@ function shopMenu() {
 function waveDone() {
 	destroyAll("coin")
     // button advance stuff
+	let shopkeeperListener = onCollide("player", "shopkeeper", () => {
+		playerTouchingShop = true
+		debug.log("touching shopkeeper")
+	})
+	let shopkeeperListener2 = onCollideEnd("player", "shopkeeper", () => {
+		playerTouchingShop = false
+		shopListener.paused = false
+		debug.log("not touching shopkeeper")
+	})
 	const button = add([
 		sprite("next-wave-button"),
 		pos(center().add(0, height()/2 - 100)),
@@ -660,11 +669,13 @@ function waveDone() {
 		if (button.clicked) return
 		button.clicked = true
 		destroyAll("intermission")
+		shopkeeperListener.cancel()
+		shopkeeperListener2.cancel()
 		spawnWave()
 	})
 
     // shopkeeper stuff
-	const shopkeeper = add([
+	add([
 		sprite("friend"),
 		pos(center().sub(0, 100)),
 		area(),
@@ -680,15 +691,6 @@ function waveDone() {
 		{ speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
 	]
 	let playerTouchingShop = false
-	onCollide("player", "shopkeeper", () => {
-		playerTouchingShop = true
-        debug.log("touching shopkeeper")
-	})
-	onCollideEnd("player", "shopkeeper", () => {
-		playerTouchingShop = false
-        shopListener.paused = false
-        debug.log("not touching shopkeeper")
-	})
 	const shopListener = onKeyPress("e", () => {
 		if (playerTouchingShop) {
             shopListener.paused = true
