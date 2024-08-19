@@ -128,7 +128,7 @@ function showDialogue(dialogues: { speaker: string; text: string }[], onComplete
 		dialogueText.text = currentDialogue.text;
 	}
 
-	onKeyPress("space", () => {
+	const advanceDialogueListener = onKeyPress("space", () => {
 		currentDialogueIndex++;
 		if (currentDialogueIndex < dialogues.length) {
 			updateDialogue();
@@ -136,7 +136,10 @@ function showDialogue(dialogues: { speaker: string; text: string }[], onComplete
 			destroy(dialogueBox);
 			destroy(speakerText);
 			destroy(dialogueText);
-			if (onComplete) onComplete();
+			if (onComplete) {
+                advanceDialogueListener.cancel()
+                onComplete();
+            }
 		}
 	});
 
@@ -564,9 +567,6 @@ function shopMenu() {
 	function doUpgrade(theUpgrade: GameObj | GameObj<SpriteComp | PosComp | AreaComp | AnchorComp | ScaleComp>) {
         upgradeListener.cancel()
         if (money.value >= swordUpgradeCost) {
-            debug.log("i have" + money.value)
-            debug.log("i need" + swordUpgradeCost)
-
             showDialogue(upgrade_dialogue, () => {
                 WeaponDamage += 1
                 updateMoney(-swordUpgradeCost)
@@ -623,10 +623,12 @@ function waveDone() {
 	let playerTouchingShop = false
 	onCollide("player", "shopkeeper", () => {
 		playerTouchingShop = true
+        debug.log("touching shopkeeper")
 	})
 	onCollideEnd("player", "shopkeeper", () => {
 		playerTouchingShop = false
         shopListener.paused = false
+        debug.log("not touching shopkeeper")
 	})
 	const shopListener = onKeyPress("e", () => {
 		if (playerTouchingShop) {
