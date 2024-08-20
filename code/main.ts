@@ -174,8 +174,8 @@ function selectSpawn() {
 			spawnPoint = potentialPoint;
 		}
 	}
-    // TODO: CHANGE THIS
-    return center().sub(0,200) // DEBUGGING ONLY
+
+    //return center().sub(0,200) // DEBUGGING ONLY
 	return spawnPoint;
 }
 
@@ -534,8 +534,10 @@ player.on("hurt", () => {
 	destroyAll("heart")
 	hearts()
 })
-let swordUpgradeCost = 5
-
+// DO NOT CHANGE THESE VARIABLES WITHOUT CHANGING THE VALUES IN UPDATE DIALOGUE FUNCTION FIRST
+let swordUpgradeCost = 20
+let healPotionCost = 10
+let maxHealthUpgradeCost = 50
 function shopMenu() {
     let touchingSwordUpgrade = false
     let touchingHealthUpgrade = false
@@ -551,69 +553,173 @@ function shopMenu() {
         "sword_upgrade",
 		"intermission",
 	])
-	let upgrade_dialogue = [
+	let sword_upgrade_dialogue = [
 		{speaker: "Ren", text: "What is this?"},
 		{
 			speaker: "Zen - Shopkeeper",
-			text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc. "
+			text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc."
 		},
-		{speaker: "Ren", text: "I'll take the ZenBlade"},
-		{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
-		{speaker: "Ren", text: "I'll take it"},
-		{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses"},
+		{speaker: "Ren", text: "I'll take the ZenBlade."},
+		{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.`},
+		{speaker: "Ren", text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."},
+		{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses."},
 	]
-	let not_enough_money = [
-		{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-		{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
+	let health_upgrade_dialogue = [
+		{speaker: "Ren", text: "What is this?"},
+		{speaker: "Zen - Shopkeeper", text: "It's a health upgrade, it'll increase your maximum health by 1"},
+		{speaker: "Ren", text: "I didn't even know that was possible!"},
+		{speaker: "Zen - Shopkeeper", text: "It was possible due to recent ZenDustry™ Inc. advancements in health technology."},
+		{speaker: "Zen - Shopkeeper", text: "But research isn't free, you know. My scientists have to eat, and so do I. It's not like food grows on trees."},
+		{speaker: "Ren", text: "But food does grow on trees..."},
+		{speaker: "Zen - Shopkeeper", text: "Bah, kids these days..."},
+		{speaker: "Zen - Shopkeeper", text: `That'll be ${maxHealthUpgradeCost} coins.`},
+		{speaker: "Ren", text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Oof, that was a lot of money. Now what am 𝑰 going to eat?"},
+		{speaker: "Zen - Shopkeeper", text: "I hear that the orange enemies drop pineapples when they die. Maybe you could eat those."},
 	]
+	let heal_potion_dialogue = [
+		{speaker: "Ren", text: "What is this?"},
+		{speaker: "Zen - Shopkeeper", text: "It's a healing potion, it'll heal you for 3 hearts."},
+		{speaker: "Ren", text: "I'll take one."},
+		{speaker: "Zen - Shopkeeper", text: `Alright, that'll be ${healPotionCost} coins.`},
+		{speaker: "Ren", text: (money.value >= healPotionCost * 2) ? "What an affordable price!" : "Why are these so expensive, It's almost like you're trying to make a profit."},
+		{speaker: "Zen - Shopkeeper", text: "It's a free market."},
+		{speaker: "Ren", text: "If it was a free market, couldn't you just give me the market for free? Besides, you're a monopoly. "},
+		{speaker: "Zen - Shopkeeper", text: "Think of it like you're supporting a local business."},
+		{speaker: "Ren", text: "I don't even know where we are. How can you be local?"},
+		{speaker: "Ren", text: "Besides, where do you even go between waves?"},
+	]
+	// updates the variable parts of the dialogue
 	function updateDialogue() {
-		upgrade_dialogue = [
-			{speaker: "Ren", text: "What is this?"},
-			{
+		// if you already bought sword upgrade, reduce the dialogue to only essentials
+		if (swordUpgradeCost != 20) {
+			sword_upgrade_dialogue = [
+				{speaker: "Ren", text: "Can you upgrade my sword again?"},
+				{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.`},
+				{
+					speaker: "Ren",
+					text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."
+				},
+			]
+		} else {
+			sword_upgrade_dialogue[3] = {speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`}
+			sword_upgrade_dialogue[4] = {
+				speaker: "Ren",
+				text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."
+			}
+		}
+		// if you already bought maxHealth upgrade, reduce the dialogue to only essentials
+		if (maxHealthUpgradeCost != 50) {
+			health_upgrade_dialogue = [
+				{speaker: "Ren", text: "I'm not feeling strong enough yet...Upgrade me some more!"},
+				{speaker: "Zen - Shopkeeper", text: `No problem, that'll be ${maxHealthUpgradeCost} coins.`},
+				{
+					speaker: "Ren",
+					text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Why are scientists so expensive...Are they eating at Michelin-star restaurants?"
+				},
+			]
+		} else {
+			health_upgrade_dialogue[7] = {speaker: "Zen - Shopkeeper", text: `That'll be ${maxHealthUpgradeCost} coins`}
+			health_upgrade_dialogue[8] = {
+				speaker: "Ren",
+				text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Oof, that was a lot of money. Now what am 𝑰 going to eat?"
+			}
+		}
+		// if you already bought health potion, change dialogue
+		if (healPotionCost != 10) {
+			heal_potion_dialogue = [
+				{speaker: "Ren", text: "Give me some more of that red juice! It makes me feel amazing!"},
+				{
+					speaker: "Zen - Shopkeeper",
+					text: `The customer is always right...That'll be ${healPotionCost} coins.`
+				},
+				{
+					speaker: "Ren",
+					text: (money.value >= healPotionCost * 2) ? "What an affordable price!" : "Why are these so expensive, It's almost like you're trying to make a profit."
+				},
+			]
+		} else {
+			heal_potion_dialogue[3] = {
 				speaker: "Zen - Shopkeeper",
-				text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc. "
-			},
-			{speaker: "Ren", text: "I'll take the ZenBlade"},
-			{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`},
-			{speaker: "Ren", text: "I'll take it"},
-			{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses"},
-		]
-		not_enough_money = [
-			{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-			{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`},
-		]
+				text: `Alright, that'll be ${healPotionCost} coins.`
+			}
+			heal_potion_dialogue[4] = {
+				speaker: "Ren",
+				text: (money.value >= healPotionCost * 2) ? "What an affordable price!" : "Why are these so expensive, It's almost like you're trying to make a profit."
+			}
+		}
 	}
+
 
     function cleanupUpgrades() {
         destroyAll("upgrade")
     }
 	function doUpgrade(upgrade: String) {
+		updateDialogue()
         upgradeListener.cancel()
         if (upgrade == "sword") {
             if (money.value >= swordUpgradeCost) {
-                showDialogue(upgrade_dialogue, () => {
+                showDialogue(sword_upgrade_dialogue, () => {
                     WeaponDamage += 1
                     updateMoney(-swordUpgradeCost)
                     swordUpgradeCost *= 1.75
                     swordUpgradeCost = Math.floor(swordUpgradeCost)
-                    debug.log("i bought the upgrade!")
                     cleanupUpgrades()
                 })
             } else {
-                showDialogue(not_enough_money, () => {
-                    debug.log("not enough money :(")
-                    cleanupUpgrades()
-                })
+                showDialogue(
+					[
+						{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+						{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`}
+					],
+					() => {
+                    	cleanupUpgrades()
+                	}
+				)
             }
         } else if (upgrade == "health") {
-            // todo: health upgrade
+			if (money.value >= maxHealthUpgradeCost) {
+				showDialogue(health_upgrade_dialogue, () => {
+					player.setMaxHP(player.hp() + 1)
+					updateMoney(-maxHealthUpgradeCost)
+					maxHealthUpgradeCost *= 2
+					maxHealthUpgradeCost = Math.floor(maxHealthUpgradeCost)
+					cleanupUpgrades()
+				})
+			} else {
+				showDialogue(
+					[
+						{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+						{speaker: "Ren", text: `I only need ${maxHealthUpgradeCost - money.value} more coins!`}
+					],
+					() => {
+						cleanupUpgrades()
+					}
+				)
+			}
         } else if (upgrade == "heal") {
             // todo: healing potion
+			if (money.value >= healPotionCost) {
+				showDialogue(heal_potion_dialogue, () => {
+					spawnHeal(center().sub(0, 100))
+					updateMoney(-healPotionCost)
+					healPotionCost *= 1.5
+					healPotionCost = Math.floor(healPotionCost)
+					cleanupUpgrades()
+				})
+			} else {
+				showDialogue(
+					[
+						{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+						{speaker: "Ren", text: `I only need ${healPotionCost - money.value} more coins!`}
+					],
+					() => {
+						cleanupUpgrades()
+					}
+				)
+			}
         } else {
             debug.log("something went wrong")
         }
-        debug.log("upgrade costs: " + swordUpgradeCost)
-        updateDialogue()
 	}
     onCollide("player", "sword_upgrade", () => {
         touchingSwordUpgrade = true
@@ -645,7 +751,7 @@ function shopMenu() {
 }
 function waveDone() {
 	destroyAll("coin")
-    // button advance stuff
+	// shopkeeper contact listeners
 	let shopkeeperListener = onCollide("player", "shopkeeper", () => {
 		playerTouchingShop = true
 		debug.log("touching shopkeeper")
@@ -655,6 +761,8 @@ function waveDone() {
 		shopListener.paused = false
 		debug.log("not touching shopkeeper")
 	})
+
+	// button to advance wave
 	const button = add([
 		sprite("next-wave-button"),
 		pos(center().add(0, height()/2 - 100)),
@@ -705,7 +813,7 @@ function waveDone() {
     if (Math.random() < 0.33 || true) {
         const glen = add([
             sprite("npc"),
-            pos(center().sub(100, 100)),
+            pos(center().sub(400, 400)),
             area(),
             body(),
             anchor("center"),
