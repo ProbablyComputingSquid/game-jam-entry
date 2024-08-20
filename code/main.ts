@@ -37,6 +37,7 @@ loadSprite("coin", "sprites/coin.png")
 loadSprite("upgrade", "sprites/jumpy.png")
 loadSprite("next-wave-button", "sprites/next-wave.png")
 loadSprite("heal", "sprites/heal.png")
+loadSprite("hp_upgrade", "sprites/hp_upgrade.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -545,12 +546,34 @@ function shopMenu() {
 	add([
 		sprite("upgrade"),
 		pos(center().sub(50, 50)),
-		scale(0.5),
+		scale(0.75),
 		area(),
         body(),
 		anchor("center"),
 		"upgrade",
         "sword_upgrade",
+		"intermission",
+	])
+	add([
+		sprite("heal"),
+		pos(center().sub(100, 50)),
+		scale(0.1),
+		area(),
+		body(),
+		anchor("center"),
+		"upgrade",
+		"heal_potion",
+		"intermission",
+	])
+	add([
+		sprite("hp_upgrade"),
+		pos(center().sub(-50, 50)),
+		scale(0.75),
+		area(),
+		body(),
+		anchor("center"),
+		"upgrade",
+		"health_upgrade",
 		"intermission",
 	])
 	let sword_upgrade_dialogue = [
@@ -696,8 +719,7 @@ function shopMenu() {
 					}
 				)
 			}
-        } else if (upgrade == "heal") {
-            // todo: healing potion
+        } else if (upgrade == "heal_potion") {
 			if (money.value >= healPotionCost) {
 				showDialogue(heal_potion_dialogue, () => {
 					spawnHeal(center().sub(0, 100))
@@ -733,10 +755,10 @@ function shopMenu() {
     onCollideEnd("player", "health_upgrade", () => {
         touchingHealthUpgrade = false
     })
-    onCollide("player", "heal", () => {
+    onCollide("player", "heal_potion", () => {
         touchingHeal = true
     })
-    onCollideEnd("player", "heal", () => {
+    onCollideEnd("player", "heal_potion", () => {
         touchingHeal = false
     })
 	const upgradeListener = onKeyPress("e", () => {
@@ -754,12 +776,12 @@ function waveDone() {
 	// shopkeeper contact listeners
 	let shopkeeperListener = onCollide("player", "shopkeeper", () => {
 		playerTouchingShop = true
-		debug.log("touching shopkeeper")
+		//debug.log("touching shopkeeper")
 	})
 	let shopkeeperListener2 = onCollideEnd("player", "shopkeeper", () => {
 		playerTouchingShop = false
 		shopListener.paused = false
-		debug.log("not touching shopkeeper")
+		//debug.log("not touching shopkeeper")
 	})
 
 	// button to advance wave
@@ -809,18 +831,23 @@ function waveDone() {
 		}
 	})
 
-    // npc stuff
-    if (Math.random() < 0.33 || true) {
+    // glen controllers
+    if (Math.random() < 0.33) {
+		let glenOriginalPos = center().sub(350, 350)
         const glen = add([
             sprite("npc"),
-            pos(center().sub(400, 400)),
+            pos(glenOriginalPos),
             area(),
             body(),
+			offscreen({destroy:true}),
             anchor("center"),
             "npc",
 			"glen",
             "intermission",
         ])
+		onDestroy("glen", () => {
+			glenListener.cancel()
+		})
         let glen_dialogue = [
             {speaker: "???", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."},
             {speaker: "Ren", text: "Bro what are you saying???"},
@@ -834,18 +861,39 @@ function waveDone() {
             {speaker: "Glen", text: "I don't know, I'm homeless. I just sometimes appear here and then disappear, sent off to a black expanse of nothingness. It's boring out there."},
         ]
 		let touchingGlen = false
+		let gotPotion = false
 		onCollide("player", "glen", () => {
 			touchingGlen = true
 		})
 		onCollideEnd("player", "glen", () => {
 			touchingGlen = false
+			const dir = glenOriginalPos.sub(glen.pos).unit();
+			const speed = 100; // Adjust speed as needed
+			if (distance(glenOriginalPos, glen.pos) > 100) {
+				showDialogue([{speaker:"Glen", text: "Hey, stop pushing me!"}])
+			}
+			glen.onUpdate(() => {
+				if (glen.pos.dist(glenOriginalPos) > 1) {
+					glen.move(dir.scale(speed));
+				} else {
+					glen.pos = glenOriginalPos;
+					glen.onUpdate(() => {}); // Stop updating once Glen reaches the original position
+				}
+			});
 		})
 		const glenListener = onKeyPress("e", () => {
-			if (touchingGlen) {
+			if (touchingGlen && !gotPotion) {
 				showDialogue(glen_dialogue, () => {
-					spawnHeal(glen.pos)
+					spawnHeal(glen.pos.add(100,100))
 				})
-				glenListener.cancel()
+				gotPotion = true
+				wait(5, () => {
+					glenListener.cancel()
+				})
+			} else if (touchingGlen) {
+				showDialogue([
+					{speaker: "Glen", text: "Bro, I'm not going to give you more free stuff"}
+				])
 			}
 		})
 
