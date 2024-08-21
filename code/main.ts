@@ -99,7 +99,12 @@ const waveText = add([
 	z(2),
 	{value: 1}
 ])
-
+const shotgunText = add([
+	text("Shells: 3/3"),
+	pos(12, height() - 48),
+	color(rgb(0,0,0)),
+	z(2),
+])
 // dialogue stuff
 function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
 	let currentDialogueIndex = 0;
@@ -460,6 +465,7 @@ onKeyPress("r", () => {
 			play("gun-ready")
 			shotgun.shells = shotgun.magazine
 			shotgun.reloading = false
+			updateBulletsText()
 		})
 	}
 })
@@ -488,7 +494,9 @@ onUpdate("player", () => {
 	//debug.log(weaponAngle)
 })
 
-
+function updateBulletsText() {
+	shotgunText.text = `Shells: ${shotgun.shells}/${shotgun.magazine}`
+}
 onMousePress(() => {
 	// if player clicked last frame, hurt the enemy
 	//weaponDistance = width()/17.5
@@ -520,6 +528,7 @@ onMousePress(() => {
 					"shell",
 				])
 			}
+			updateBulletsText()
 		}
 	}
 })
@@ -529,7 +538,7 @@ onCollide("shell", "glen", (shell) => {
 })
 onCollide("shell", "shopkeeper", (shell) => {
 	destroy(shell)
-	showDialogue([{speaker: "Zen - Shopkeeper", text: "Do you think that's going to make me lower my prices? Think again!"}], () => {
+	showDialogue([{speaker: "Zen - Shopkeeper", text: "Bro, do you think that's going to make me lower my prices? Just don't shoot me again...ouch..."}], () => {
 		// raise prices :)
 		swordUpgradeCost *= 1.1
 		maxHealthUpgradeCost *= 1.1
@@ -648,10 +657,10 @@ let touchingShotgunDamageUpgrade = false
 let touchingShotgunMagazineUpgrade = false
 // positions for upgrades
 let swordUpgradePos = center().sub(75, 50)
-let healPotionPos = center().sub(150, 50)
+let healPotionPos = center().sub(-150, 50)
 let hpUpgradePos = center().sub(-75, 50)
-let shotgunDamageUpgradePos = center().sub(150, 50)
-let shotgunMagazineUpgradePos = center().sub(225, 50)
+let shotgunDamageUpgradePos = center().sub(200, 50)
+let shotgunMagazineUpgradePos = center().sub(300, 50)
 const swordUpgradePriceText = add([
 	text(swordUpgradeCost + " coins"),
 	pos(center()),

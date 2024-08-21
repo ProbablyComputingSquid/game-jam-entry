@@ -35,4 +35,20 @@ To stick with that theme, I built a little hack-and-slash game with upgrades usi
 - press `R` to reload the shotgun.
 
 # Photo Gallery #
+Ren and the shopkeeper. (Pineapple cameo appearance!)
+![screenshot1](gallery/screenshot1.png)
+Ren is dead :(
+![screenshot2](gallery/screenshot2.png)
+An unforgivable crime.
+![screenshot3](gallery/screenshot3.png)
+Ah, capitalism.
+![img.png](gallery/img.png)
+A horde of red beans descends upon Ren.
+![img_1.png](gallery/img_1.png)
 
+# Credits #
+- [Kaboom.js](https://kaboomjs.com/) - Game Engine + base sprites
+- [Pixabay](https://pixabay.com) - sound effects
+- [ComputingSquid](https://github.com/ProbablyComputingSquid) (me) - Programming and Art
+- [CoolSchnoodle](https://github.com/CoolSchnoodle) - added the run on replit button + gave some helpful suggestions
+- JoshCo server - you made this little game jam possible, so thank you! Without you guys, I would have procrastinated even longer. 
