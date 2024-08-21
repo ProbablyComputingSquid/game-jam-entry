@@ -32,12 +32,15 @@ loadSprite("grave", "sprites/gravestone.png")
 loadSprite("background", "sprites/grass-background.png")
 loadSprite("pineapple", "sprites/pineapple.png")
 loadSprite("coin", "sprites/coin.png")
-loadSprite("upgrade", "sprites/jumpy.png")
+//loadSprite("upgrade", "sprites/jumpy.png")
+loadSprite("sword-upgrade", "sprites/sword-upgrade.png")
 loadSprite("next-wave-button", "sprites/next-wave.png")
 loadSprite("heal", "sprites/heal.png")
 loadSprite("hp_upgrade", "sprites/hp_upgrade.png")
 loadSprite("bullet", "sprites/pixel-bullet.png")
 loadSprite("shotgun", "sprites/shotgun.png")
+loadSprite("shotgun-bullet-upgrade", "sprites/shotgun-bullet-upgrade.png")
+loadSprite("shotgun-damage-upgrade", "sprites/shotgun-damage-upgrade.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -621,6 +624,7 @@ player.on("hurt", () => {
 let swordUpgradeCost = 20
 let healPotionCost = 10
 let maxHealthUpgradeCost = 50
+
 let touchingSwordUpgrade = false
 let touchingHealthUpgrade = false
 let touchingHeal = false
@@ -693,8 +697,8 @@ function shopMenu() {
     touchingHealthUpgrade = false
     touchingHeal = false
 	add([
-		sprite("upgrade"),
-		pos(center().sub(75, 50)),
+		sprite("sword-upgrade"),
+		pos(center().sub(-75, 50)),
 		scale(0.75),
 		area(),
         body(),
@@ -703,6 +707,7 @@ function shopMenu() {
         "sword_upgrade",
 		"intermission",
 	])
+
 	add([
 		sprite("heal"),
 		pos(center().sub(150, 50)),
@@ -716,7 +721,7 @@ function shopMenu() {
 	])
 	add([
 		sprite("hp_upgrade"),
-		pos(center().sub(-75, 50)),
+		pos(center().sub(75, 50)),
 		scale(0.75),
 		area(),
 		body(),
@@ -830,7 +835,7 @@ function shopMenu() {
                 showDialogue(sword_upgrade_dialogue, () => {
                     WeaponDamage += 1
                     updateMoney(-swordUpgradeCost)
-                    swordUpgradeCost *= 1.75
+                    swordUpgradeCost *= 2
                     swordUpgradeCost = Math.floor(swordUpgradeCost)
                     cleanupUpgrades()
                 })
@@ -850,7 +855,7 @@ function shopMenu() {
 				showDialogue(health_upgrade_dialogue, () => {
 					player.setMaxHP(player.hp() + 1)
 					updateMoney(-maxHealthUpgradeCost)
-					maxHealthUpgradeCost *= 2
+					maxHealthUpgradeCost *= 2.5
 					maxHealthUpgradeCost = Math.floor(maxHealthUpgradeCost)
 					cleanupUpgrades()
 				})
@@ -870,7 +875,7 @@ function shopMenu() {
 				showDialogue(heal_potion_dialogue, () => {
 					spawnHeal(center().sub(0, 100))
 					updateMoney(-healPotionCost)
-					healPotionCost *= 1.5
+					healPotionCost *= 1.75
 					healPotionCost = Math.floor(healPotionCost)
 					cleanupUpgrades()
 				})
