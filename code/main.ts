@@ -1,9 +1,7 @@
 /* todo:
-    * add upgrades
-    * wave text
+    * fix upgrades charging too much???
     * add a ranged player attack
     * inventory system???
-    * shop???
 */
 //@ts-ignore
 import kaboom, { AnchorComp, AreaComp, GameObj, PosComp, ScaleComp, SpriteComp} from "kaboom"
@@ -156,7 +154,7 @@ function distance(pointA, pointB): number {
 // finds the farthest spawn point from the player
 function selectSpawn() {
 	const playerPos = player.pos; // Get the player's current position
-	const spawnRadius = 1000; // Define a maximum radius for spawn points
+	const spawnRadius = 850; // Define a maximum radius for spawn points
 
 	let spawnPoint = new Vec2();
 	let maxDistance = 0;
@@ -535,17 +533,85 @@ player.on("hurt", () => {
 	destroyAll("heart")
 	hearts()
 })
+
 // DO NOT CHANGE THESE VARIABLES WITHOUT CHANGING THE VALUES IN UPDATE DIALOGUE FUNCTION FIRST
 let swordUpgradeCost = 20
 let healPotionCost = 10
 let maxHealthUpgradeCost = 50
+let touchingSwordUpgrade = false
+let touchingHealthUpgrade = false
+let touchingHeal = false
+const swordUpgradePriceText = add([
+	text(swordUpgradeCost + " coins"),
+	pos(center()),
+	opacity(0),
+	anchor("center"),
+	color(rgb(0, 0, 0)),
+])
+const healthUpgradePriceText = add([
+	text(maxHealthUpgradeCost + " coins"),
+	pos(center()),
+	opacity(0),
+	anchor("center"),
+	color(rgb(0, 0, 0)),
+])
+const healPotionPriceText =  add([
+	text(healPotionCost + " coins"),
+	pos(center()),
+	opacity(0),
+	anchor("center"),
+	color(rgb(0, 0, 0)),
+])
+onCollide("player", "sword_upgrade", (player, upgrade) => {
+	touchingSwordUpgrade = true
+	swordUpgradePriceText.opacity = 1
+	swordUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+	swordUpgradePriceText.text = swordUpgradeCost + " coins"
+})
+onCollideEnd("player", "sword_upgrade", () => {
+	touchingSwordUpgrade = false
+	swordUpgradePriceText.opacity = 0
+})
+onCollide("player", "health_upgrade", (player, upgrade) => {
+	touchingHealthUpgrade = true
+	healthUpgradePriceText.opacity = 1
+	healthUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+	healthUpgradePriceText.text = maxHealthUpgradeCost + " coins"
+})
+onCollideEnd("player", "health_upgrade", () => {
+	touchingHealthUpgrade = false
+	healthUpgradePriceText.opacity = 0
+})
+onCollide("player", "heal_potion", (player, upgrade) => {
+	touchingHeal = true
+	healPotionPriceText.opacity = 1
+	healPotionPriceText.pos = upgrade.pos.sub(0, -50)
+	healPotionPriceText.text = healPotionCost + " coins"
+})
+onCollideEnd("player", "heal_potion", () => {
+	touchingHeal = false
+	healPotionPriceText.opacity = 0
+})
+function cleanupUpgrades() {
+	destroyAll("upgrade")
+}
+onUpdate("sword_upgrade", (upgrade) => {
+	upgrade.pos = center().sub(75, 50)
+})
+onUpdate("heal_potion", (upgrade) => {
+	upgrade.pos = center().sub(150, 50)
+})
+onUpdate("health_upgrade", (upgrade) => {
+	upgrade.pos = center().sub(-75, 50)
+})
+
 function shopMenu() {
-    let touchingSwordUpgrade = false
-    let touchingHealthUpgrade = false
-    let touchingHeal = false
+	touchingSwordUpgrade = false
+    touchingHealthUpgrade = false
+    touchingHeal = false
 	add([
 		sprite("upgrade"),
-		pos(center().sub(50, 50)),
+		pos(center().sub(75, 50)),
 		scale(0.75),
 		area(),
         body(),
@@ -556,7 +622,7 @@ function shopMenu() {
 	])
 	add([
 		sprite("heal"),
-		pos(center().sub(100, 50)),
+		pos(center().sub(150, 50)),
 		scale(0.1),
 		area(),
 		body(),
@@ -567,7 +633,7 @@ function shopMenu() {
 	])
 	add([
 		sprite("hp_upgrade"),
-		pos(center().sub(-50, 50)),
+		pos(center().sub(-75, 50)),
 		scale(0.75),
 		area(),
 		body(),
@@ -673,12 +739,9 @@ function shopMenu() {
 	}
 
 
-    function cleanupUpgrades() {
-        destroyAll("upgrade")
-    }
+
 	function doUpgrade(upgrade: String) {
 		updateDialogue()
-        upgradeListener.cancel()
         if (upgrade == "sword") {
             if (money.value >= swordUpgradeCost) {
                 showDialogue(sword_upgrade_dialogue, () => {
@@ -743,46 +806,42 @@ function shopMenu() {
             debug.log("something went wrong")
         }
 	}
-    onCollide("player", "sword_upgrade", () => {
-        touchingSwordUpgrade = true
-    })
-    onCollideEnd("player", "sword_upgrade", () => {
-        touchingSwordUpgrade = false
-    })
-    onCollide("player", "health_upgrade", () => {
-        touchingHealthUpgrade = true
-    })
-    onCollideEnd("player", "health_upgrade", () => {
-        touchingHealthUpgrade = false
-    })
-    onCollide("player", "heal_potion", () => {
-        touchingHeal = true
-    })
-    onCollideEnd("player", "heal_potion", () => {
-        touchingHeal = false
-    })
 	const upgradeListener = onKeyPress("e", () => {
+		upgradeListener.cancel()
 		if (touchingSwordUpgrade) {
             doUpgrade("sword")
         } else if (touchingHealthUpgrade) {
             doUpgrade("health")
         } else if (touchingHeal) {
-            doUpgrade("heal")
+            doUpgrade("heal_potion")
         }
 	})
 }
+let playerTouchingShop = false;
+// shopkeeper contact listeners
+onCollide("player", "shopkeeper", () => {
+	playerTouchingShop = true
+})
+onCollideEnd("player", "shopkeeper", () => {
+	playerTouchingShop = false
+	shopListener.paused = false
+})
+const shopListener = onKeyPress("e", () => {
+	if (playerTouchingShop) {
+		shopListener.paused = true
+		showDialogue(shop_dialogue, () => {
+			shopMenu()
+		})
+	}
+})
+const shop_dialogue = [
+	{ speaker: "Zen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
+	{ speaker: "Ren", text: "What do you have in stock?" },
+	{ speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
+]
 function waveDone() {
 	destroyAll("coin")
-	// shopkeeper contact listeners
-	let shopkeeperListener = onCollide("player", "shopkeeper", () => {
-		playerTouchingShop = true
-		//debug.log("touching shopkeeper")
-	})
-	let shopkeeperListener2 = onCollideEnd("player", "shopkeeper", () => {
-		playerTouchingShop = false
-		shopListener.paused = false
-		//debug.log("not touching shopkeeper")
-	})
+
 
 	// button to advance wave
 	const button = add([
@@ -799,8 +858,6 @@ function waveDone() {
 		if (button.clicked) return
 		button.clicked = true
 		destroyAll("intermission")
-		shopkeeperListener.cancel()
-		shopkeeperListener2.cancel()
 		spawnWave()
 	})
 
@@ -815,21 +872,6 @@ function waveDone() {
 		"npc",
 		"intermission",
 	])
-	const shop_dialogue = [
-		{ speaker: "Zen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
-		{ speaker: "Ren", text: "What do you have in stock?" },
-		{ speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
-	]
-	let playerTouchingShop = false
-	const shopListener = onKeyPress("e", () => {
-		if (playerTouchingShop) {
-            shopListener.paused = true
-			showDialogue(shop_dialogue, () => {
-				shopMenu()
-                debug.log("entered the shop")
-			})
-		}
-	})
 
     // glen controllers
     if (Math.random() < 0.33) {
