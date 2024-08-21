@@ -4,7 +4,7 @@
     * inventory system???
 */
 //@ts-ignore
-import kaboom, { AnchorComp, AreaComp, GameObj, PosComp, ScaleComp, SpriteComp} from "kaboom"
+import kaboom from "kaboom"
 import "kaboom/global"
 
 const SPEED = 320;
@@ -15,7 +15,7 @@ let enemiesLeft = 0
 let currentWave = 0
 let baseEnemies = 5
 let difficulty = 1.2
-
+let weaponEquipped = "sword"
 
 // initialize context
 kaboom()
@@ -36,6 +36,8 @@ loadSprite("upgrade", "sprites/jumpy.png")
 loadSprite("next-wave-button", "sprites/next-wave.png")
 loadSprite("heal", "sprites/heal.png")
 loadSprite("hp_upgrade", "sprites/hp_upgrade.png")
+loadSprite("bullet", "sprites/pixel-bullet.png")
+loadSprite("shotgun", "sprites/shotgun.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -44,6 +46,9 @@ loadSound("level-complete", "sounds/level-complete.mp3")
 loadSound("new-wave", "sounds/whoosh-drum.mp3")
 loadSound("level-failed", "sounds/level-failed.mp3")
 loadSound("music", "sounds/background-music.mp3")
+loadSound("gun-ready", "sounds/gun-cock.mp3")
+loadSound("gun-reload", "sounds/reload.mp3")
+loadSound("shotgun-fire", "sounds/shotgun-fire.mp3")
 // font
 loadFont("apl386", "fonts/apl386.ttf")
 loadFont("lemon", "fonts/BubbleLemonDemoOutline.ttf")
@@ -150,7 +155,18 @@ function showDialogue(dialogues: { speaker: string; text: string }[], onComplete
 function distance(pointA, pointB): number {
 	return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
 }
-
+// vec2 rotate vector function
+function rotateVector(vec, angle: number) {
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	return vec2(
+		vec.x * cos - vec.y * sin,
+		vec.x * sin + vec.y * cos
+	);
+}
+function vectorAngle(vec): number {
+	return Math.atan2(vec.y, vec.x);
+}
 // finds the farthest spawn point from the player
 function selectSpawn() {
 	const playerPos = player.pos; // Get the player's current position
@@ -369,7 +385,7 @@ player.on("death", () => {
 			anchor("center")
 		])
 		destroy(player)
-		destroy(weapon)
+		destroy(sword)
 		play("level-failed")
 		add([
 			text("game over", {
@@ -402,25 +418,70 @@ player.on("death", () => {
 onCollide("player", "melee", () => {
 	player.hurt(1)
 })
-const weapon = add([
+onCollide("shell", "enemy", (shell, enemy) => {
+	destroy(shell)
+	enemy.hurt(shell.damage)
+})
+const sword = add([
 	sprite("sword"),
 	pos(player.pos.x + (width() / 25), player.pos.y),
 	area(),
-	"weapon",
 	anchor("center"),
 	scale(0.2),
 	rotate(0),
+	opacity(1),
+	"sword",
 ])
-
+const shotgun = add([
+	sprite("shotgun"),
+	pos(player.pos.x + (width() / 25), player.pos.y),
+	area(),
+	scale(0.25),
+	anchor("center"),
+	rotate(90),
+	opacity(0),
+	{
+		reloading: false,
+		reloadTime: 3,
+		shells: 3,
+		magazine: 3,
+		damage: 1,
+	},
+	"shotgun",
+])
+onKeyPress("r", () => {
+	if (shotgun.shells < shotgun.magazine && !shotgun.reloading) {
+		shotgun.reloading = true
+		play("gun-reload")
+		wait(shotgun.reloadTime, () => {
+			play("gun-ready")
+			shotgun.shells = shotgun.magazine
+			shotgun.reloading = false
+		})
+	}
+})
+onKeyPress("tab", () => {
+	if (weaponEquipped == "sword") {
+		weaponEquipped = "shotgun"
+		sword.opacity = 0
+		shotgun.opacity = 1
+	} else {
+		weaponEquipped = "sword"
+		sword.opacity = 1
+		shotgun.opacity = 0
+	}
+})
 let weaponDistance = width() / 25
-// rotate the weapon to face mouse
+// rotate the sword to face mouse
 onUpdate("player", () => {
 	let weaponPos = new Vec2()
 	let weaponAngle = Math.atan2(player.pos.y - mousePos().y, player.pos.x - mousePos().x) - Math.PI
 	weaponPos.x = weaponDistance * Math.cos(weaponAngle) + player.pos.x
 	weaponPos.y = weaponDistance * Math.sin(weaponAngle) + player.pos.y
-	weapon.pos = weaponPos
-	weapon.rotateTo(weaponAngle * 180 / Math.PI)
+	sword.pos = weaponPos
+	sword.rotateTo(weaponAngle * 180 / Math.PI)
+	shotgun.pos = weaponPos
+	shotgun.rotateTo(weaponAngle * 180 / Math.PI)
 	//debug.log(weaponAngle)
 })
 
@@ -428,16 +489,38 @@ onUpdate("player", () => {
 onMousePress(() => {
 	// if player clicked last frame, hurt the enemy
 	//weaponDistance = width()/17.5
-	if (player.exists()) {
+	if (player.exists() && weaponEquipped == "sword") {
 		play("slash")
-		// tween the weapon movement
+		// tween the sword movement
 		tween(width() / 25, width() / 17.5, 1, (p) => weaponDistance = p, easings.easeOutBounce)
 		wait(0.1, () => {
 			tween(width() / 17.5, width() / 25, 1, (p) => weaponDistance = p, easings.easeOutBounce)
 		})
+	} else if (player.exists() && weaponEquipped == "shotgun") {
+		if (shotgun.shells > 0 && !shotgun.reloading) {
+			play("shotgun-fire")
+			shotgun.shells -= 1
+			for (let i = 0; i < 5; i++) {
+				let dir = mousePos().sub(player.pos).unit()
+				dir = rotateVector(dir, Math.random() * 0.5 - 0.25)
+				add([
+					sprite("bullet"),
+					scale(0.1),
+					pos(player.pos),
+					move(dir, BULLET_SPEED),
+					area(),
+					offscreen({destroy: true}),
+					rotate(vectorAngle(dir) * 180 / Math.PI),
+					lifespan(1, {fade: 0.75}),
+					anchor("center"),
+					{damage: shotgun.damage},
+					"shell",
+				])
+			}
+		}
 	}
 })
-onCollideUpdate("weapon", "enemy", (weapon, enemy) => {
+onCollideUpdate("sword", "enemy", (weapon, enemy) => {
 	// if player clicked last frame, hurt the enemy
 	if (isMousePressed() && player.exists()) {
 		enemy.hurt(WeaponDamage)
@@ -507,7 +590,7 @@ function enemyDeath(points: number, position) {
 			sprite("coin"),
 			pos(position),
 			area({
-				collisionIgnore: ["coin", "enemy", "bullet", "weapon", "pineapple"]
+				collisionIgnore: ["coin", "enemy", "bullet", "sword", "pineapple"]
 			}),
 			z(-1),
 			body(),
