@@ -39,7 +39,7 @@ loadSprite("heal", "sprites/heal.png")
 loadSprite("hp_upgrade", "sprites/hp_upgrade.png")
 loadSprite("bullet", "sprites/pixel-bullet.png")
 loadSprite("shotgun", "sprites/shotgun.png")
-loadSprite("shotgun-bullet-upgrade", "sprites/shotgun-bullet-upgrade.png")
+loadSprite("shotgun-magazine-upgrade", "sprites/shotgun-bullet-upgrade.png")
 loadSprite("shotgun-damage-upgrade", "sprites/shotgun-damage-upgrade.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
@@ -523,6 +523,21 @@ onMousePress(() => {
 		}
 	}
 })
+onCollide("shell", "glen", (shell) => {
+	destroy(shell)
+	showDialogue([{speaker: "Glen", text: "Hey, stop that!"}])
+})
+onCollide("shell", "shopkeeper", (shell) => {
+	destroy(shell)
+	showDialogue([{speaker: "Zen - Shopkeeper", text: "Do you think that's going to make me lower my prices? Think again!"}], () => {
+		// raise prices :)
+		swordUpgradeCost *= 1.1
+		maxHealthUpgradeCost *= 1.1
+		healPotionCost *= 1.1
+		shotgunDamageUpgradeCost *= 1.1
+		shotgunMagazineUpgradeCost *= 1.1
+	})
+})
 onCollideUpdate("sword", "enemy", (weapon, enemy) => {
 	// if player clicked last frame, hurt the enemy
 	if (isMousePressed() && player.exists()) {
@@ -620,14 +635,23 @@ player.on("hurt", () => {
 	hearts()
 })
 
-// DO NOT CHANGE THESE VARIABLES WITHOUT CHANGING THE VALUES IN UPDATE DIALOGUE FUNCTION FIRST
+// cost for purchasing upgrades
 let swordUpgradeCost = 20
 let healPotionCost = 10
-let maxHealthUpgradeCost = 50
-
+let maxHealthUpgradeCost = 75
+let shotgunDamageUpgradeCost = 50
+let shotgunMagazineUpgradeCost = 100
 let touchingSwordUpgrade = false
 let touchingHealthUpgrade = false
 let touchingHeal = false
+let touchingShotgunDamageUpgrade = false
+let touchingShotgunMagazineUpgrade = false
+// positions for upgrades
+let swordUpgradePos = center().sub(75, 50)
+let healPotionPos = center().sub(150, 50)
+let hpUpgradePos = center().sub(-75, 50)
+let shotgunDamageUpgradePos = center().sub(150, 50)
+let shotgunMagazineUpgradePos = center().sub(225, 50)
 const swordUpgradePriceText = add([
 	text(swordUpgradeCost + " coins"),
 	pos(center()),
@@ -649,6 +673,21 @@ const healPotionPriceText =  add([
 	anchor("center"),
 	color(rgb(0, 0, 0)),
 ])
+const shotgunDamageUpgradePriceText = add([
+	text(shotgunDamageUpgradeCost + " coins"),
+	pos(center()),
+	opacity(0),
+	anchor("center"),
+	color(rgb(0, 0, 0)),
+])
+const shotgunMagazineUpgradePriceText = add([
+	text(shotgunMagazineUpgradeCost + " coins"),
+	pos(center()),
+	opacity(0),
+	anchor("center"),
+	color(rgb(0, 0, 0)),
+])
+// collision handlers for upgrade price text
 onCollide("player", "sword_upgrade", (player, upgrade) => {
 	touchingSwordUpgrade = true
 	swordUpgradePriceText.opacity = 1
@@ -669,6 +708,26 @@ onCollideEnd("player", "health_upgrade", () => {
 	touchingHealthUpgrade = false
 	healthUpgradePriceText.opacity = 0
 })
+onCollide("player", "shotgun-damage-upgrade", (player, upgrade) => {
+	touchingShotgunDamageUpgrade = true
+	shotgunDamageUpgradePriceText.opacity = 1
+	shotgunDamageUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+	shotgunDamageUpgradePriceText.text = shotgunDamageUpgradeCost + " coins"
+})
+onCollideEnd("player", "shotgun-damage-upgrade", () => {
+	touchingShotgunDamageUpgrade = false
+	shotgunDamageUpgradePriceText.opacity = 0
+})
+onCollide("player", "shotgun-magazine-upgrade", (player, upgrade) => {
+	touchingShotgunMagazineUpgrade = true
+	shotgunMagazineUpgradePriceText.opacity = 1
+	shotgunMagazineUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+	shotgunMagazineUpgradePriceText.text = shotgunMagazineUpgradeCost + " coins"
+})
+onCollideEnd("player", "shotgun-magazine-upgrade", () => {
+	touchingShotgunMagazineUpgrade = false
+	shotgunMagazineUpgradePriceText.opacity = 0
+})
 onCollide("player", "heal_potion", (player, upgrade) => {
 	touchingHeal = true
 	healPotionPriceText.opacity = 1
@@ -683,22 +742,29 @@ function cleanupUpgrades() {
 	destroyAll("upgrade")
 }
 onUpdate("sword_upgrade", (upgrade) => {
-	upgrade.pos = center().sub(75, 50)
+	upgrade.pos = swordUpgradePos
 })
 onUpdate("heal_potion", (upgrade) => {
-	upgrade.pos = center().sub(150, 50)
+	upgrade.pos = healPotionPos
 })
 onUpdate("health_upgrade", (upgrade) => {
-	upgrade.pos = center().sub(-75, 50)
+	upgrade.pos = hpUpgradePos
+})
+onUpdate("shotgun-damage-upgrade", (upgrade) => {
+	upgrade.pos = shotgunDamageUpgradePos
+})
+onUpdate("shotgun-bullet-upgrade", (upgrade) => {
+	upgrade.pos = shotgunMagazineUpgradePos
 })
 
 function shopMenu() {
 	touchingSwordUpgrade = false
     touchingHealthUpgrade = false
     touchingHeal = false
+	// sword upgrade
 	add([
 		sprite("sword-upgrade"),
-		pos(center().sub(-75, 50)),
+		pos(swordUpgradePos),
 		scale(0.75),
 		area(),
         body(),
@@ -707,10 +773,10 @@ function shopMenu() {
         "sword_upgrade",
 		"intermission",
 	])
-
+	// healing potion
 	add([
 		sprite("heal"),
-		pos(center().sub(150, 50)),
+		pos(healPotionPos),
 		scale(0.1),
 		area(),
 		body(),
@@ -719,9 +785,10 @@ function shopMenu() {
 		"heal_potion",
 		"intermission",
 	])
+	// hp upgrade
 	add([
 		sprite("hp_upgrade"),
-		pos(center().sub(75, 50)),
+		pos(hpUpgradePos),
 		scale(0.75),
 		area(),
 		body(),
@@ -730,6 +797,31 @@ function shopMenu() {
 		"health_upgrade",
 		"intermission",
 	])
+	// shotgun damage increase
+	add([
+		sprite("shotgun-damage-upgrade"),
+		pos(shotgunDamageUpgradePos),
+		scale(0.75),
+		area(),
+		body(),
+		anchor("center"),
+		"upgrade",
+		"shotgun-damage-upgrade",
+		"intermission",
+	])
+	// shotgun magazine increase
+	add([
+		sprite("shotgun-magazine-upgrade"),
+		pos(shotgunMagazineUpgradePos),
+		scale(0.75),
+		area(),
+		body(),
+		anchor("center"),
+		"upgrade",
+		"shotgun-magazine-upgrade",
+		"intermission",
+	])
+
 	let sword_upgrade_dialogue = [
 		{speaker: "Ren", text: "What is this?"},
 		{
@@ -765,6 +857,21 @@ function shopMenu() {
 		{speaker: "Ren", text: "I don't even know where we are. How can you be local?"},
 		{speaker: "Ren", text: "Besides, where do you even go between waves?"},
 	]
+	let shotgun_damage_dialogue = [
+		{speaker: "Ren", text: "My shotgun is too weak. It isn't damaging the enemies enough. "},
+		{speaker: "Zen - Shopkeeper", text: `I'll can make your shotgun more powerful...`},
+		{speaker: "Ren", text: "Alright, bet!"}, // slang for "I agree"
+		{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunDamageUpgradeCost} coins`},
+		{speaker: "Ren", text: (money.value >= shotgunDamageUpgradeCost * 2) ? "That's a decent price." : "That much? It's almost like you're hammering coins into my shotgun!"}
+	]
+	let shotgun_magazine_dialogue = [
+		{speaker: "Ren", text: "I need more bullets in my shotgun. It's not enough. There's too many of those red frowning guys out there."},
+		{speaker: "Zen - Shopkeeper", text: "I have just the solution for your problems. More bullets!!!"},
+		{speaker: "Ren", text: "I love America!!! 🇺🇸🇺🇸🇺🇸🦅🦅🦅🔫🔫🔫"},
+		{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins`},
+		{speaker: "Ren", text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!" : "That's a lot of money. I could buy a lot of pineapples with that."}
+
+	]
 	// updates the variable parts of the dialogue
 	function updateDialogue() {
 		// if you already bought sword upgrade, reduce the dialogue to only essentials
@@ -778,7 +885,6 @@ function shopMenu() {
 				},
 			]
 		} else {
-			sword_upgrade_dialogue[3] = {speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins`}
 			sword_upgrade_dialogue[4] = {
 				speaker: "Ren",
 				text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."
@@ -795,7 +901,6 @@ function shopMenu() {
 				},
 			]
 		} else {
-			health_upgrade_dialogue[7] = {speaker: "Zen - Shopkeeper", text: `That'll be ${maxHealthUpgradeCost} coins`}
 			health_upgrade_dialogue[8] = {
 				speaker: "Ren",
 				text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Oof, that was a lot of money. Now what am 𝑰 going to eat?"
@@ -815,14 +920,31 @@ function shopMenu() {
 				},
 			]
 		} else {
-			heal_potion_dialogue[3] = {
-				speaker: "Zen - Shopkeeper",
-				text: `Alright, that'll be ${healPotionCost} coins.`
-			}
 			heal_potion_dialogue[4] = {
 				speaker: "Ren",
 				text: (money.value >= healPotionCost * 2) ? "What an affordable price!" : "Why are these so expensive, It's almost like you're trying to make a profit."
 			}
+		}
+		// if you already bought shotgun damage upgrade, change dialogue
+		if (shotgunDamageUpgradeCost != 50) {
+			shotgun_damage_dialogue = [
+				{speaker: "Ren", text: "Give me more power!"},
+				{speaker: "Zen - Shopkeeper", text: `Of course, for a price of ${shotgunDamageUpgradeCost} coins`},
+				{speaker: "Ren", text: (money.value >= shotgunDamageUpgradeCost * 2) ? "That's a decent price." : "That much? It's almost like you're hammering coins into my shotgun!"}
+			]
+		} else {
+			shotgun_damage_dialogue[4] = {speaker: "Ren", text: (money.value >= shotgunDamageUpgradeCost * 2) ? "That's a decent price." : "That much? It's almost like you're hammering coins into my shotgun!"}
+		}
+		// if you already bought shotgun magazine upgrade, change dialogue
+		if (shotgunMagazineUpgradeCost != 100) {
+			shotgun_magazine_dialogue = [
+				{speaker: "Ren", text: "I need more bullets to fit in my shotgun!"},
+				{speaker: "Zen - Shopkeeper", text: `I have just the solution for your problems. A larger magazine!!!`},
+				{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins`},
+				{speaker: "Ren", text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."}
+			]
+		} else {
+			shotgun_magazine_dialogue[4] = {speaker: "Ren", text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."}
 		}
 	}
 
@@ -890,7 +1012,47 @@ function shopMenu() {
 					}
 				)
 			}
-        } else {
+        } else if (upgrade == "shotgun-damage") {
+			if (money.value >= shotgunDamageUpgradeCost) {
+				showDialogue(shotgun_damage_dialogue, () => {
+					shotgun.damage += 1
+					updateMoney(-shotgunDamageUpgradeCost)
+					shotgunDamageUpgradeCost *= 2
+					shotgunDamageUpgradeCost = Math.floor(shotgunDamageUpgradeCost)
+					cleanupUpgrades()
+				})
+			} else {
+				showDialogue(
+					[
+						{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+						{speaker: "Ren", text: `I only need ${shotgunDamageUpgradeCost - money.value} more coins!`}
+					],
+					() => {
+						cleanupUpgrades()
+					}
+				)
+			}
+		} else if (upgrade == "shotgun-magazine") {
+			if (money.value >= shotgunMagazineUpgradeCost) {
+				showDialogue(shotgun_magazine_dialogue, () => {
+					shotgun.magazine += 1
+					updateMoney(-shotgunMagazineUpgradeCost)
+					shotgunMagazineUpgradeCost *= 2
+					shotgunMagazineUpgradeCost = Math.floor(shotgunMagazineUpgradeCost)
+					cleanupUpgrades()
+				})
+			} else {
+				showDialogue(
+					[
+						{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+						{speaker: "Ren", text: `I only need ${shotgunMagazineUpgradeCost - money.value} more coins!`}
+					],
+					() => {
+						cleanupUpgrades()
+					}
+				)
+			}
+		} else {
             debug.log("something went wrong")
         }
 	}
@@ -902,7 +1064,11 @@ function shopMenu() {
             doUpgrade("health")
         } else if (touchingHeal) {
             doUpgrade("heal_potion")
-        }
+        } else if (touchingShotgunDamageUpgrade) {
+			doUpgrade("shotgun-damage")
+		} else if (touchingShotgunMagazineUpgrade) {
+			doUpgrade("shotgun-magazine")
+		}
 	})
 }
 let playerTouchingShop = false;
