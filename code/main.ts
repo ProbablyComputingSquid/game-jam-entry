@@ -59,6 +59,7 @@ function game() {
 	let baseEnemies = 5
 	let difficulty = 1.2
 	let weaponEquipped = "sword"
+	let talking = false
 
 // background
 	add([
@@ -111,7 +112,7 @@ function game() {
 // dialogue stuff
 	function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
 		let currentDialogueIndex = 0;
-
+		talking = true
 		const dialogueBox = add([
 			rect(width() - 40, 100),
 			pos(20, height() - 120),
@@ -154,6 +155,7 @@ function game() {
 				destroy(dialogueText);
 				if (onComplete) {
 					advanceDialogueListener.cancel()
+					talking = false
 					onComplete();
 				}
 			}
@@ -320,12 +322,15 @@ function game() {
 	function addEnemy(enemyHealth = 1, type = 0) {
 		// type 0 is the default enemy, just melee
 		// type 1 is a ranged enemy
-		if (type == 1) {
-			// melee enemy
-			addRangedEnemy(enemyHealth)
-		} else {
-			addMeleeEnemy(enemyHealth)
-		}
+		// wait a certain amount of time before spawning the enemy to ensure pseudo-random enemy distribution
+		wait(rand(0, currentWave * 3), () => {
+			if (type == 1) {
+				// melee enemy
+				addRangedEnemy(enemyHealth)
+			} else {
+				addMeleeEnemy(enemyHealth)
+			}
+		})
 	}
 
 // add player to screen
@@ -426,7 +431,7 @@ function game() {
 				scale(2),
 			])
 			onKeyPress("space", () => {
-				window.location.reload()
+				game()
 			})
 		}
 	})
@@ -505,7 +510,7 @@ function game() {
 	function updateBulletsText() {
 		shotgunText.text = `Shells: ${shotgun.shells}/${shotgun.magazine}`
 	}
-
+	// firing/using weapon code
 	onMousePress(() => {
 		// if player clicked last frame, hurt the enemy
 		//weaponDistance = width()/17.5
@@ -541,6 +546,7 @@ function game() {
 			}
 		}
 	})
+	// code to do things when you shoot npcs
 	onCollide("shell", "glen", (shell) => {
 		destroy(shell)
 		showDialogue([{speaker: "Glen", text: "Hey, stop that!"}])
@@ -573,16 +579,16 @@ function game() {
 
 // player control stuff
 	onKeyDown("d", () => {
-		player.move(SPEED, 0)
+		if (!talking) player.move(SPEED, 0)
 	})
 	onKeyDown("a", () => {
-		player.move(-SPEED, 0)
+		if (!talking) player.move(-SPEED, 0)
 	})
 	onKeyDown("w", () => {
-		player.move(0, -SPEED)
+		if (!talking) player.move(0, -SPEED)
 	})
 	onKeyDown("s", () => {
-		player.move(0, SPEED)
+		if (!talking) player.move(0, SPEED)
 	})
 
 // deal with the heart bar
@@ -676,8 +682,8 @@ function game() {
 	let touchingShotgunMagazineUpgrade = false
 // positions for upgrades
 	let swordUpgradePos = center().sub(75, 50)
-	let healPotionPos = center().sub(-150, 50)
-	let hpUpgradePos = center().sub(-75, 50)
+	let healPotionPos = center().sub(-175, 50)
+	let hpUpgradePos = center().sub(-50, 50)
 	let shotgunDamageUpgradePos = center().sub(200, 50)
 	let shotgunMagazineUpgradePos = center().sub(300, 50)
 	const swordUpgradePriceText = add([
@@ -686,6 +692,14 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+	])
+	const swordUpgradeDescriptionText = add([
+		text("upgrade sword damage"),
+		pos(center()),
+		opacity(0),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(0.75),
 	])
 	const healthUpgradePriceText = add([
 		text(maxHealthUpgradeCost + " coins"),
@@ -720,11 +734,14 @@ function game() {
 		touchingSwordUpgrade = true
 		swordUpgradePriceText.opacity = 1
 		swordUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+		swordUpgradeDescriptionText.opacity = 1
+		swordUpgradeDescriptionText.pos = upgrade.pos.sub(0, 50)
 		swordUpgradePriceText.text = swordUpgradeCost + " coins"
 	})
 	onCollideEnd("player", "sword_upgrade", () => {
 		touchingSwordUpgrade = false
 		swordUpgradePriceText.opacity = 0
+		swordUpgradeDescriptionText.opacity = 0
 	})
 	onCollide("player", "health_upgrade", (player, upgrade) => {
 		touchingHealthUpgrade = true
@@ -1160,8 +1177,11 @@ function game() {
 		playerTouchingShop = false
 		shopListener.paused = false
 	})
+	onUpdate("shopkeeper", (shopkeeper) => {
+		shopkeeper.pos = center().add(0, 150)
+	})
 	const shopListener = onKeyPress("e", () => {
-		if (playerTouchingShop) {
+		if (playerTouchingShop && !talking) {
 			shopListener.paused = true
 			showDialogue(shop_dialogue, () => {
 				shopMenu()
@@ -1201,7 +1221,7 @@ function game() {
 		// shopkeeper stuff
 		add([
 			sprite("friend"),
-			pos(center().sub(0, 100)),
+			pos(center().add(0, 150)),
 			area(),
 			body(),
 			anchor("center"),
@@ -1268,7 +1288,7 @@ function game() {
 				});
 			})
 			const glenListener = onKeyPress("e", () => {
-				if (touchingGlen && !gotPotion) {
+				if (touchingGlen && !gotPotion && !talking) {
 					showDialogue(glen_dialogue, () => {
 						spawnHeal(glen.pos.add(100, 100))
 					})
