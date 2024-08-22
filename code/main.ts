@@ -218,7 +218,7 @@ function game() {
 			area({scale: 0.8}),
 			body(),
 			health(enemyHealth),
-
+			anchor("center"),
 			"enemy",
 			"melee",
 			{
