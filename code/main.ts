@@ -33,6 +33,11 @@ loadSprite("shotgun", "sprites/shotgun.png")
 loadSprite("shotgun-magazine-upgrade", "sprites/shotgun-bullet-upgrade.png")
 loadSprite("shotgun-damage-upgrade", "sprites/shotgun-damage-upgrade.png")
 loadSprite("wasd", "images/wasd.png")
+loadSprite("spacebar", "images/spacebar.png")
+loadSprite("r", "images/r.png")
+loadSprite("e", "images/e.png")
+loadSprite("mouse", "images/mouse.png")
+loadSprite("tab", "images/tab.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -1412,7 +1417,7 @@ function game() {
 
 const title = add([
 	sprite("title"),
-	pos(center()),
+	pos(center().sub(0,300)),
 	anchor("center"),
 	scale(0.5),
 	opacity(0),
@@ -1430,14 +1435,14 @@ add([
 const spacetostart = add([
 	text("Press space to start"),
 	color(rgb(255,255,255)),
-	pos(center().add(0, 100)),
+	pos(center().add(0, 300)),
 	anchor("center"),
 	opacity(0),
 	"title"
 ])
 const wasd = add([
 	sprite("wasd"),
-	pos(center().add(-150, 200)),
+	pos(center().add(-150, -200)),
 	anchor("center"),
 	opacity(0),
 	scale(0.25),
@@ -1446,10 +1451,71 @@ const wasd = add([
 ])
 const wasd_text = add([
 	text("use WASD to move"),
-	pos(center().add(150, 200)),
+	pos(center().add(150, -200)),
 	opacity(0),
 	color(rgb(255,255,255)),
 	anchor("center"),
+	"title"
+])
+const e_key = add([
+	sprite("e"),
+	pos(center().add(-150, -125)),
+	anchor("center"),
+	scale(0.1),
+	opacity(0),
+	"title"
+])
+const e_key_text = add([
+	text("press E to interact"),
+	pos(center().add(150, -125)),
+	anchor("center"),
+	opacity(0),
+	"title"
+])
+const r_key = add([
+	sprite("r"),
+	pos(center().add(-150, -25)),
+	anchor("center"),
+	scale(0.25),
+	opacity(0),
+	"title"
+])
+const r_key_text = add([
+	text("press R to reload"),
+	pos(center().add(150, -25)),
+	anchor("center"),
+	opacity(0),
+	"title"
+])
+const tab_key = add([
+	sprite("tab"),
+	pos(center().add(-150, 75)),
+	anchor("center"),
+	scale(0.25),
+	opacity(0),
+	"title"
+])
+const tab_key_text = add([
+	text("press tab to switch weapons"),
+	pos(center().add(150, 75)),
+	anchor("center"),
+	opacity(0),
+	scale(0.8),
+	"title"
+])
+const mouse = add([
+	sprite("mouse"),
+	pos(center().add(-150, 175)),
+	anchor("center"),
+	scale(0.25),
+	opacity(0),
+	"title"
+])
+const mouse_text = add([
+	text("click to attack"),
+	pos(center().add(150, 175)),
+	anchor("center"),
+	opacity(0),
 	"title"
 ])
 play("whoosh")
@@ -1462,6 +1528,14 @@ tweenTitle().then(() => {
 	spacetostart.opacity = 1;
 	wasd.opacity = 1
 	wasd_text.opacity = 1
+	e_key.opacity = 1
+	e_key_text.opacity = 1
+	r_key.opacity = 1
+	r_key_text.opacity = 1
+	tab_key.opacity = 1
+	tab_key_text.opacity = 1
+	mouse.opacity = 1
+	mouse_text.opacity = 1
 })
 
 const startGameListener = onKeyPress("space", async () => {
