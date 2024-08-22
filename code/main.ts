@@ -708,12 +708,28 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 	])
+	const healthUpgradeDescriptionText = add([
+		text("increase max health by 1"),
+		pos(center()),
+		opacity(0),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(0.75),
+	])
 	const healPotionPriceText = add([
 		text(healPotionCost + " coins"),
 		pos(center()),
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+	])
+	const healPotionDescriptionText = add([
+		text("heal 3 hearts"),
+		pos(center()),
+		opacity(0),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(0.75),
 	])
 	const shotgunDamageUpgradePriceText = add([
 		text(shotgunDamageUpgradeCost + " coins"),
@@ -722,12 +738,28 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 	])
+	const shotgunDamageUpgradeDescriptionText = add([
+		text("increase shotgun damage"),
+		pos(center()),
+		opacity(0),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(0.75),
+	])
 	const shotgunMagazineUpgradePriceText = add([
 		text(shotgunMagazineUpgradeCost + " coins"),
 		pos(center()),
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+	])
+	const shotgunMagazineUpgradeDescriptionText = add([
+		text("increase shotgun magazine size"),
+		pos(center()),
+		opacity(0),
+		anchor("center"),
+		color(rgb(0, 0, 0)),
+		scale(0.75),
 	])
 // collision handlers for upgrade price text
 	onCollide("player", "sword_upgrade", (player, upgrade) => {
@@ -747,41 +779,53 @@ function game() {
 		touchingHealthUpgrade = true
 		healthUpgradePriceText.opacity = 1
 		healthUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+		healthUpgradeDescriptionText.opacity = 1
+		healthUpgradeDescriptionText.pos = upgrade.pos.sub(0, 50)
 		healthUpgradePriceText.text = maxHealthUpgradeCost + " coins"
 	})
 	onCollideEnd("player", "health_upgrade", () => {
 		touchingHealthUpgrade = false
 		healthUpgradePriceText.opacity = 0
+		healthUpgradeDescriptionText.opacity = 0
 	})
 	onCollide("player", "shotgun-damage-upgrade", (player, upgrade) => {
 		touchingShotgunDamageUpgrade = true
 		shotgunDamageUpgradePriceText.opacity = 1
 		shotgunDamageUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+		shotgunDamageUpgradeDescriptionText.opacity = 1
+		shotgunDamageUpgradeDescriptionText.pos = upgrade.pos.sub(0, 50)
 		shotgunDamageUpgradePriceText.text = shotgunDamageUpgradeCost + " coins"
 	})
 	onCollideEnd("player", "shotgun-damage-upgrade", () => {
 		touchingShotgunDamageUpgrade = false
 		shotgunDamageUpgradePriceText.opacity = 0
+		shotgunDamageUpgradeDescriptionText.opacity = 0
 	})
 	onCollide("player", "shotgun-magazine-upgrade", (player, upgrade) => {
 		touchingShotgunMagazineUpgrade = true
 		shotgunMagazineUpgradePriceText.opacity = 1
 		shotgunMagazineUpgradePriceText.pos = upgrade.pos.sub(0, -50)
+		shotgunMagazineUpgradeDescriptionText.opacity = 1
+		shotgunMagazineUpgradeDescriptionText.pos = upgrade.pos.sub(0, 50)
 		shotgunMagazineUpgradePriceText.text = shotgunMagazineUpgradeCost + " coins"
 	})
 	onCollideEnd("player", "shotgun-magazine-upgrade", () => {
 		touchingShotgunMagazineUpgrade = false
 		shotgunMagazineUpgradePriceText.opacity = 0
+		shotgunMagazineUpgradeDescriptionText.opacity = 0
 	})
 	onCollide("player", "heal_potion", (player, upgrade) => {
 		touchingHeal = true
 		healPotionPriceText.opacity = 1
 		healPotionPriceText.pos = upgrade.pos.sub(0, -50)
+		healPotionDescriptionText.opacity = 1
+		healPotionDescriptionText.pos = upgrade.pos.sub(0, 50)
 		healPotionPriceText.text = healPotionCost + " coins"
 	})
 	onCollideEnd("player", "heal_potion", () => {
 		touchingHeal = false
 		healPotionPriceText.opacity = 0
+		healPotionDescriptionText.opacity = 0
 	})
 
 	function cleanupUpgrades() {
