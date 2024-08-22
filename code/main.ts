@@ -44,6 +44,7 @@ loadSound("gun-ready", "sounds/gun-cock.mp3")
 loadSound("gun-reload", "sounds/reload.mp3")
 loadSound("shotgun-fire", "sounds/shotgun-fire.mp3")
 loadSound("whoosh", "sounds/whoosh-impact.mp3")
+loadSound("title-music", "sounds/pixel bop.mp3")
 // font
 loadFont("apl386", "fonts/apl386.ttf", {outline:2})
 
@@ -1340,10 +1341,22 @@ add([
 	color(rgb(0,0,0)),
 	"title",
 ])
+const spacetostart = add([
+	text("Press space to start"),
+	color(rgb(255,255,255)),
+	pos(center().add(0, 100)),
+	anchor("center"),
+	opacity(0),
+	"title"
+])
 play("whoosh")
 const titleMusic = play("title-music")
-tween(0, 0.5, 1, (val) => title.scale = new Vec2(val,val), easings.easeInBounce)
-tween(0, 1, 1, (val) => title.opacity = val, easings.easeInQuad)
+async function tweenTitle() {
+	tween(0, 0.5, 1, (val) => title.scale = new Vec2(val,val), easings.easeInBounce)
+	await tween(0, 1, 1, (val) => title.opacity = val, easings.easeInQuad)
+}
+tweenTitle().then(() => {spacetostart.opacity = 1})
+
 const startGameListener = onKeyPress("space", async () => {
 	startGameListener.cancel()
 
