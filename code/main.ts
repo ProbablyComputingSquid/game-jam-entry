@@ -32,6 +32,7 @@ loadSprite("bullet", "sprites/pixel-bullet.png")
 loadSprite("shotgun", "sprites/shotgun.png")
 loadSprite("shotgun-magazine-upgrade", "sprites/shotgun-bullet-upgrade.png")
 loadSprite("shotgun-damage-upgrade", "sprites/shotgun-damage-upgrade.png")
+loadSprite("wasd", "images/wasd.png")
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -446,7 +447,7 @@ function game() {
 	const sword = add([
 		sprite("sword"),
 		pos(player.pos.x + (width() / 25), player.pos.y),
-		area(),
+		area({scale:1.2}),
 		anchor("center"),
 		scale(0.2),
 		rotate(0),
@@ -692,6 +693,7 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+		"upgrade"
 	])
 	const swordUpgradeDescriptionText = add([
 		text("upgrade sword damage"),
@@ -700,6 +702,7 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 		scale(0.75),
+		"upgrade"
 	])
 	const healthUpgradePriceText = add([
 		text(maxHealthUpgradeCost + " coins"),
@@ -707,6 +710,7 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+		"upgrade"
 	])
 	const healthUpgradeDescriptionText = add([
 		text("increase max health by 1"),
@@ -715,6 +719,7 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 		scale(0.75),
+		"upgrade"
 	])
 	const healPotionPriceText = add([
 		text(healPotionCost + " coins"),
@@ -722,6 +727,7 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+		"upgrade"
 	])
 	const healPotionDescriptionText = add([
 		text("heal 3 hearts"),
@@ -730,6 +736,7 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 		scale(0.75),
+		"upgrade"
 	])
 	const shotgunDamageUpgradePriceText = add([
 		text(shotgunDamageUpgradeCost + " coins"),
@@ -737,6 +744,7 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+		"upgrade"
 	])
 	const shotgunDamageUpgradeDescriptionText = add([
 		text("increase shotgun damage"),
@@ -745,6 +753,7 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 		scale(0.75),
+		"upgrade"
 	])
 	const shotgunMagazineUpgradePriceText = add([
 		text(shotgunMagazineUpgradeCost + " coins"),
@@ -752,6 +761,7 @@ function game() {
 		opacity(0),
 		anchor("center"),
 		color(rgb(0, 0, 0)),
+		"upgrade"
 	])
 	const shotgunMagazineUpgradeDescriptionText = add([
 		text("increase shotgun magazine size"),
@@ -760,6 +770,7 @@ function game() {
 		anchor("center"),
 		color(rgb(0, 0, 0)),
 		scale(0.75),
+		"upgrade"
 	])
 // collision handlers for upgrade price text
 	onCollide("player", "sword_upgrade", (player, upgrade) => {
@@ -1250,15 +1261,26 @@ function game() {
 			pos(center().add(0, height() / 2 - 100)),
 			scale(0.25),
 			area(),
+			z(-1),
 			anchor("center"),
 			"wave-button",
 			"intermission",
 			{clicked: false},
 		])
-		onClick("wave-button", () => {
+		const waveListener = onClick("wave-button", () => {
 			if (button.clicked) return
 			button.clicked = true
 			destroyAll("intermission")
+			waveListener.cancel()
+			waveListener2.cancel()
+			spawnWave()
+		})
+		const waveListener2 = onCollide("player", "wave-button", () => {
+			if (button.clicked) return
+			button.clicked = true
+			destroyAll("intermission")
+			waveListener2.cancel()
+			waveListener.cancel()
 			spawnWave()
 		})
 
@@ -1413,13 +1435,34 @@ const spacetostart = add([
 	opacity(0),
 	"title"
 ])
+const wasd = add([
+	sprite("wasd"),
+	pos(center().add(-150, 200)),
+	anchor("center"),
+	opacity(0),
+	scale(0.25),
+	color(rgb(255,255,255)),
+	"title",
+])
+const wasd_text = add([
+	text("use WASD to move"),
+	pos(center().add(150, 200)),
+	opacity(0),
+	color(rgb(255,255,255)),
+	anchor("center"),
+	"title"
+])
 play("whoosh")
 const titleMusic = play("title-music")
 async function tweenTitle() {
 	tween(0, 0.5, 1, (val) => title.scale = new Vec2(val,val), easings.easeInBounce)
 	await tween(0, 1, 1, (val) => title.opacity = val, easings.easeInQuad)
 }
-tweenTitle().then(() => {spacetostart.opacity = 1})
+tweenTitle().then(() => {
+	spacetostart.opacity = 1;
+	wasd.opacity = 1
+	wasd_text.opacity = 1
+})
 
 const startGameListener = onKeyPress("space", async () => {
 	startGameListener.cancel()
