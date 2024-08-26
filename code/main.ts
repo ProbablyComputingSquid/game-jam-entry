@@ -29,7 +29,6 @@ loadSprite("next-wave-button", "sprites/next-wave.png")
 loadSprite("heal", "sprites/heal.png")
 loadSprite("hp_upgrade", "sprites/hp_upgrade.png")
 loadSprite("bullet", "sprites/pixel-bullet.png")
-loadSprite("shotgun", "sprites/shotgun.png")
 loadSprite("shotgun-magazine-upgrade", "sprites/shotgun-bullet-upgrade.png")
 loadSprite("shotgun-damage-upgrade", "sprites/shotgun-damage-upgrade.png")
 loadSprite("wasd", "images/wasd.png")
@@ -38,6 +37,13 @@ loadSprite("r", "images/r.png")
 loadSprite("e", "images/e.png")
 loadSprite("mouse", "images/mouse.png")
 loadSprite("tab", "images/tab.png")
+loadSprite("shotgun", "sprites/shotgun-spritesheet.png", {
+	sliceY: 2,
+	anims: {
+		reloading: 0,
+		loaded: 1,
+	}
+})
 // sounds
 loadSound("oof", "sounds/oof.mp3")
 loadSound("score", "sounds/score.mp3")
@@ -460,7 +466,9 @@ function game() {
 		"sword",
 	])
 	const shotgun = add([
-		sprite("shotgun"),
+		sprite("shotgun", {
+			anim: "loaded",
+		}),
 		pos(player.pos.x + (width() / 25), player.pos.y),
 		area(),
 		scale(0.25),
@@ -480,8 +488,10 @@ function game() {
 		if (shotgun.shells < shotgun.magazine && !shotgun.reloading) {
 			shotgun.reloading = true
 			play("gun-reload")
+			shotgun.play("reloading")
 			wait(shotgun.reloadTime, () => {
 				play("gun-ready")
+				shotgun.play("loaded")
 				shotgun.shells = shotgun.magazine
 				shotgun.reloading = false
 				updateBulletsText()
@@ -530,6 +540,11 @@ function game() {
 		} else if (player.exists() && weaponEquipped == "shotgun") {
 			if (shotgun.shells > 0 && !shotgun.reloading) {
 				play("shotgun-fire")
+				shotgun.play("reloading")
+				wait(0.25, () => {
+					play("gun-ready")
+					shotgun.play("loaded")
+				})
 				shotgun.shells -= 1
 				for (let i = 0; i < 5; i++) {
 					let dir = mousePos().sub(player.pos).unit()
@@ -868,6 +883,7 @@ function game() {
 		touchingSwordUpgrade = false
 		touchingHealthUpgrade = false
 		touchingHeal = false
+		destroyAll("upgrade-sprite")
 		// sword upgrade
 		add([
 			sprite("sword-upgrade"),
@@ -877,6 +893,7 @@ function game() {
 			body(),
 			anchor("center"),
 			"upgrade",
+			"upgrade-sprite",
 			"sword_upgrade",
 			"intermission",
 		])
@@ -889,6 +906,7 @@ function game() {
 			body(),
 			anchor("center"),
 			"upgrade",
+			"upgrade-sprite",
 			"heal_potion",
 			"intermission",
 		])
@@ -901,6 +919,7 @@ function game() {
 			body(),
 			anchor("center"),
 			"upgrade",
+			"upgrade-sprite",
 			"health_upgrade",
 			"intermission",
 		])
@@ -913,6 +932,7 @@ function game() {
 			body(),
 			anchor("center"),
 			"upgrade",
+			"upgrade-sprite",
 			"shotgun-damage-upgrade",
 			"intermission",
 		])
@@ -925,6 +945,7 @@ function game() {
 			body(),
 			anchor("center"),
 			"upgrade",
+			"upgrade-sprite",
 			"shotgun-magazine-upgrade",
 			"intermission",
 		])
