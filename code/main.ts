@@ -1459,7 +1459,8 @@ const spacetostart = add([
 	pos(center().add(0, 300)),
 	anchor("center"),
 	opacity(0),
-	"title"
+	"title",
+	"title-text",
 ])
 const wasd = add([
 	sprite("wasd"),
@@ -1468,7 +1469,7 @@ const wasd = add([
 	opacity(0),
 	scale(0.25),
 	color(rgb(255,255,255)),
-	"title",
+	"title","title-text",
 ])
 const wasd_text = add([
 	text("use WASD to move"),
@@ -1476,7 +1477,7 @@ const wasd_text = add([
 	opacity(0),
 	color(rgb(255,255,255)),
 	anchor("center"),
-	"title"
+	"title","title-text",
 ])
 const e_key = add([
 	sprite("e"),
@@ -1484,14 +1485,14 @@ const e_key = add([
 	anchor("center"),
 	scale(0.1),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const e_key_text = add([
 	text("press E to interact"),
 	pos(center().add(150, -125)),
 	anchor("center"),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const r_key = add([
 	sprite("r"),
@@ -1499,14 +1500,14 @@ const r_key = add([
 	anchor("center"),
 	scale(0.25),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const r_key_text = add([
 	text("press R to reload"),
 	pos(center().add(150, -25)),
 	anchor("center"),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const tab_key = add([
 	sprite("tab"),
@@ -1514,7 +1515,7 @@ const tab_key = add([
 	anchor("center"),
 	scale(0.25),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const tab_key_text = add([
 	text("press tab to switch weapons"),
@@ -1522,7 +1523,7 @@ const tab_key_text = add([
 	anchor("center"),
 	opacity(0),
 	scale(0.8),
-	"title"
+	"title","title-text",
 ])
 const mouse = add([
 	sprite("mouse"),
@@ -1530,14 +1531,14 @@ const mouse = add([
 	anchor("center"),
 	scale(0.25),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 const mouse_text = add([
 	text("click to attack"),
 	pos(center().add(150, 175)),
 	anchor("center"),
 	opacity(0),
-	"title"
+	"title","title-text",
 ])
 play("whoosh")
 const titleMusic = play("title-music")
@@ -1561,9 +1562,9 @@ tweenTitle().then(() => {
 
 const startGameListener = onKeyPress("space", async () => {
 	startGameListener.cancel()
-
-	tween(0.5, 0, 1, (val) => title.scale = new Vec2(val,val), easings.easeOutBounce)
-	await tween(1, 0, 1, (val) => title.opacity = val, easings.easeOutQuad)
+	destroyAll("title-text")
+	tween(0.5, 0, 2, (val) => title.scale = new Vec2(val,val), easings.easeOutBounce)
+	await tween(1, 0, 2, (val) => title.opacity = val, easings.easeOutQuad)
 	destroyAll("title")
 	titleMusic.stop()
 	game()
