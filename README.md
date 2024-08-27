@@ -38,15 +38,15 @@ To stick with that theme, I built a little hack-and-slash game with upgrades usi
 
 # Photo Gallery #
 Ren and the shopkeeper. (Pineapple cameo appearance!)
-![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/img.png)
+![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/img.png?raw=true)
 Ren is dead :(
-![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/img_1.png)
+![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/img_1.png?raw=true)
 An unforgivable crime.
-![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot1.png)
+![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot1.png?raw=true)
 Ah, capitalism.
-![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot2.png)
+![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot2.png?raw=true)
 A horde of red beans descends upon Ren.
-![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot3.png)
+![](https://github.com/ProbablyComputingSquid/game-jam-entry/blob/63e8d28bff9db8f676a3e7dccbc306150951695d/gallery/screenshot3.png?raw=true)
 
 # Credits #
 - [Kaboom.js](https://kaboomjs.com/) - Game Engine + base sprites
