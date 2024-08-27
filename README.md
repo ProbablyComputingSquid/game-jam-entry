@@ -1,5 +1,6 @@
-# JoshCo Game Jam Entry #
-Made for: https://itch.io/jam/joshco-game-jam
+# Red, White, and Beans #
+A simple wave-based endless hack-and-slash made with kaboom for the [official joshco game jam](https://itch.io/jam/joshco-game-jam).
+I couldn't afford to host it somewhere, so sadly, you have to run it locally. 
 
 ## How to Run ##
 ### Using Replit ###
@@ -9,7 +10,9 @@ Made for: https://itch.io/jam/joshco-game-jam
 3. Hit run, and the server will start. A webview should pop up on the side.
 4. Enjoy the game!
 5. Vote for my project (optional, but it really helps!)
+[![Run on Repl.it](https://repl.it/badge/github/ProbablyComputingSquid/game-jam-entry)](https://repl.it/github/ProbablyComputingSquid/game-jam-entry)
 
+(update: replit changed some TOS and user limits, so now the platform sucks, so idk)
 ## Running locally ##
 
 1. Clone the repository into your favorite IDE (I personally use WebStorm)
@@ -19,7 +22,6 @@ Made for: https://itch.io/jam/joshco-game-jam
 5. Enjoy the game!
 6. Vote for my project (optional, but it really helps!)
 
-[![Run on Repl.it](https://repl.it/badge/github/ProbablyComputingSquid/game-jam-entry)](https://repl.it/github/ProbablyComputingSquid/game-jam-entry)
 
 ## Theme: "Self-Augmentation" ## 
 
