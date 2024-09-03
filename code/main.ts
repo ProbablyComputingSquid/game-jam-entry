@@ -1,6 +1,6 @@
 /* todo:
-    * fix rounding errors
-    * inventory system???
+	* fix rounding errors
+	* inventory system???
 */
 //@ts-ignore
 import kaboom from "kaboom"
@@ -58,7 +58,7 @@ loadSound("shotgun-fire", "sounds/shotgun-fire.mp3")
 loadSound("whoosh", "sounds/whoosh-impact.mp3")
 loadSound("title-music", "sounds/pixel bop.mp3")
 // font
-loadFont("apl386", "fonts/apl386.ttf", {outline:2})
+loadFont("apl386", "fonts/APL386.ttf", { outline: 2 })
 
 
 function game() {
@@ -73,7 +73,7 @@ function game() {
 	let weaponEquipped = "sword"
 	let talking = false
 
-// background
+	// background
 	add([
 		sprite("background"),
 		pos(0, 0),
@@ -85,34 +85,34 @@ function game() {
 		loop: true,
 		volume: 0.33
 	})
-// score text
+	// score text
 	const score = add([
 		text("Score: 0"),
 		pos(12, 24 + height() / 25),
 		color(rgb(0, 0, 0)),
 		z(2),
-		{value: 0}
+		{ value: 0 }
 	])
 	const money = add([
 		text("Money: 0"),
 		pos(12, 24 + height() * 2 / 25),
 		color(rgb(0, 0, 0)),
 		z(2),
-		{value: 0}
+		{ value: 0 }
 	])
 	const enemiesLeftText = add([
 		text("Enemies Left: 0"),
 		pos(12, 24 + height() * 3 / 25),
 		color(rgb(0, 0, 0)),
 		z(2),
-		{value: 0}
+		{ value: 0 }
 	])
 	const waveText = add([
 		text("Wave: 1"),
 		pos(12, 24 + height() * 4 / 25),
 		color(rgb(0, 0, 0)),
 		z(2),
-		{value: 1}
+		{ value: 1 }
 	])
 	const shotgunText = add([
 		text("Shells: 3/3"),
@@ -121,7 +121,7 @@ function game() {
 		z(2),
 	])
 
-// dialogue stuff
+	// dialogue stuff
 	function showDialogue(dialogues: { speaker: string; text: string }[], onComplete?: () => void) {
 		let currentDialogueIndex = 0;
 		talking = true
@@ -136,7 +136,7 @@ function game() {
 		]);
 
 		const speakerText = add([
-			text("", {size: 16, width: width() - 60}),
+			text("", { size: 16, width: width() - 60 }),
 			pos(30, height() - 110),
 			color(255, 255, 255),
 			z(3),
@@ -144,7 +144,7 @@ function game() {
 		]);
 
 		const dialogueText = add([
-			text("", {size: 20, width: width() - 60}),
+			text("", { size: 20, width: width() - 60 }),
 			pos(30, height() - 85),
 			color(255, 255, 255),
 			z(3),
@@ -176,12 +176,12 @@ function game() {
 		updateDialogue();
 	}
 
-// distance function ONLY FOR VEC2s!!!
+	// distance function ONLY FOR VEC2s!!!
 	function distance(pointA, pointB): number {
 		return Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
 	}
 
-// vec2 rotate vector function
+	// vec2 rotate vector function
 	function rotateVector(vec, angle: number) {
 		const cos = Math.cos(angle);
 		const sin = Math.sin(angle);
@@ -195,7 +195,7 @@ function game() {
 		return Math.atan2(vec.y, vec.x);
 	}
 
-// finds the farthest spawn point from the player
+	// finds the farthest spawn point from the player
 	function selectSpawn() {
 		const playerPos = player.pos; // Get the player's current position
 		const spawnRadius = 850; // Define a maximum radius for spawn points
@@ -222,12 +222,12 @@ function game() {
 		return spawnPoint;
 	}
 
-// function to load in a melee enemy
+	// function to load in a melee enemy
 	function addMeleeEnemy(enemyHealth: number = 1) {
 		const enemy = add([
 			sprite("enemy"),
 			pos(selectSpawn()),
-			area({scale: 0.8}),
+			area({ scale: 0.8 }),
 			body(),
 			health(enemyHealth),
 			anchor("center"),
@@ -255,21 +255,21 @@ function game() {
 
 	}
 
-// spawns ranged enemy
+	// spawns ranged enemy
 	function addRangedEnemy(enemyHealth: number = 1) {
 		// done
 		const enemy = add([
 			sprite("ranged"),
 			pos(selectSpawn()),
 			anchor("center"),
-			area({scale: 0.8}),
+			area({ scale: 0.8 }),
 			body(),
 			// This enemy cycle between 3 states, and start from "idle" state
 			state("move", ["idle", "attack", "move", "dead"]),
 			"enemy",
 			"ranged",
 			health(enemyHealth),
-			{points: enemyHealth * 3}
+			{ points: enemyHealth * 3 }
 		])
 		// @ts-ignore
 		// when idle, wait a bit then do the attack
@@ -288,7 +288,7 @@ function game() {
 					move(dir, BULLET_SPEED),
 					rect(12, 12),
 					area(),
-					offscreen({destroy: true}),
+					offscreen({ destroy: true }),
 					anchor("center"),
 					color(BLUE),
 					"bullet",
@@ -345,7 +345,7 @@ function game() {
 		})
 	}
 
-// add player to screen
+	// add player to screen
 	const player = add([
 		// list of components
 		sprite("bean"),
@@ -355,26 +355,26 @@ function game() {
 		health(5),
 		anchor("center"),
 		"player",
-		{alive: true}
+		{ alive: true }
 	])
 
 	player.setMaxHP(5)
 
-// pineapple heals you
+	// pineapple heals you
 	player.onCollide("pineapple", (pineapple) => {
 		destroy(pineapple)
 		player.heal()
 		hearts()
 		burp()
 	})
-// healing potion heals you, but more hearts are healed (3)
+	// healing potion heals you, but more hearts are healed (3)
 	player.onCollide("heal", (potion) => {
 		destroy(potion)
 		player.heal(3)
 		hearts()
 		burp()
 	})
-// when player touches coin, collect it
+	// when player touches coin, collect it
 	player.onCollide("coin", (coin) => {
 		destroy(coin)
 		play("score")
@@ -383,7 +383,7 @@ function game() {
 		updateMoney(coin.value)
 	})
 
-// player must stay on screen
+	// player must stay on screen
 	onUpdate(() => {
 		if (player.pos.x < 0) {
 			player.pos.x = 0;
@@ -398,12 +398,12 @@ function game() {
 			player.pos.y = height();
 		}
 	});
-// when player takes a bullet, they get hurt
+	// when player takes a bullet, they get hurt
 	player.onCollide("bullet", (bullet) => {
 		destroy(bullet)
 		player.hurt(1)
 	})
-// player death event
+	// player death event
 	player.on("death", () => {
 		if (player.alive) {
 			music.stop()
@@ -458,7 +458,7 @@ function game() {
 	const sword = add([
 		sprite("sword"),
 		pos(player.pos.x + (width() / 25), player.pos.y),
-		area({scale:1.2}),
+		area({ scale: 1.2 }),
 		anchor("center"),
 		scale(0.2),
 		rotate(0),
@@ -510,7 +510,7 @@ function game() {
 		}
 	})
 	let weaponDistance = width() / 25
-// rotate the sword to face mouse
+	// rotate the sword to face mouse
 	onUpdate("player", () => {
 		let weaponPos = new Vec2()
 		let weaponAngle = Math.atan2(player.pos.y - mousePos().y, player.pos.x - mousePos().x) - Math.PI
@@ -555,11 +555,11 @@ function game() {
 						pos(player.pos),
 						move(dir, BULLET_SPEED),
 						area(),
-						offscreen({destroy: true}),
+						offscreen({ destroy: true }),
 						rotate((vectorAngle(dir) * 180 / Math.PI) + 90),
-						lifespan(1, {fade: 0.75}),
+						lifespan(1, { fade: 0.75 }),
 						anchor("center"),
-						{damage: shotgun.damage},
+						{ damage: shotgun.damage },
 						"shell",
 					])
 				}
@@ -570,13 +570,13 @@ function game() {
 	// code to do things when you shoot npcs
 	onCollide("shell", "glen", (shell) => {
 		destroy(shell)
-		showDialogue([{speaker: "Glen", text: "Hey, stop that!"}])
+		showDialogue([{ speaker: "Glen", text: "Hey, stop that!" }])
 	})
 	onCollide("shell", "shopkeeper", (shell) => {
 		destroy(shell)
 		showDialogue([
-			{speaker: "Zen - Shopkeeper", text: "Bro, do you think that's going to make me lower my prices?"},
-			{speaker: "Zen - Shopkeeper", text: "Just don't shoot me again...ouch..."},
+			{ speaker: "Zen - Shopkeeper", text: "Bro, do you think that's going to make me lower my prices?" },
+			{ speaker: "Zen - Shopkeeper", text: "Just don't shoot me again...ouch..." },
 		], () => {
 			// raise prices :)
 			swordUpgradeCost *= 1.1
@@ -598,7 +598,7 @@ function game() {
 		}
 	})
 
-// player control stuff
+	// player control stuff
 	onKeyDown("d", () => {
 		if (!talking) player.move(SPEED, 0)
 	})
@@ -612,7 +612,7 @@ function game() {
 		if (!talking) player.move(0, SPEED)
 	})
 
-// deal with the heart bar
+	// deal with the heart bar
 	function hearts() {
 		for (let i = 0; i < player.hp(); i++) {
 			add([
@@ -639,20 +639,20 @@ function game() {
 		])
 	}
 
-// deal with the score
+	// deal with the score
 	function updateScore(amount: number) {
 		score.value += amount
 		score.text = "Score:" + score.value
 	}
 
-// money update
+	// money update
 
 	function updateMoney(amount: number) {
 		money.value += amount
 		money.text = "Money:" + money.value
 	}
 
-// deal with the enemy death
+	// deal with the enemy death
 	let spawnedWave = false // prevent goofy async stuff
 
 	function enemyDeath(points: number, position) {
@@ -669,7 +669,7 @@ function game() {
 				body(),
 				scale(0.5),
 				"coin",
-				{value: 1},
+				{ value: 1 },
 			])
 		}
 		enemiesLeft -= 1
@@ -690,7 +690,7 @@ function game() {
 		hearts()
 	})
 
-// cost for purchasing upgrades
+	// cost for purchasing upgrades
 	let swordUpgradeCost = 20
 	let healPotionCost = 10
 	let maxHealthUpgradeCost = 75
@@ -701,7 +701,7 @@ function game() {
 	let touchingHeal = false
 	let touchingShotgunDamageUpgrade = false
 	let touchingShotgunMagazineUpgrade = false
-// positions for upgrades
+	// positions for upgrades
 	let swordUpgradePos = center().sub(75, 50)
 	let healPotionPos = center().sub(-175, 50)
 	let hpUpgradePos = center().sub(-50, 50)
@@ -792,7 +792,7 @@ function game() {
 		scale(0.75),
 		"upgrade"
 	])
-// collision handlers for upgrade price text
+	// collision handlers for upgrade price text
 	onCollide("player", "sword_upgrade", (player, upgrade) => {
 		touchingSwordUpgrade = true
 		swordUpgradePriceText.opacity = 1
@@ -951,23 +951,23 @@ function game() {
 		])
 
 		let sword_upgrade_dialogue = [
-			{speaker: "Ren", text: "What is this?"},
+			{ speaker: "Ren", text: "What is this?" },
 			{
 				speaker: "Zen - Shopkeeper",
 				text: "It's ZenForged ZenBlade the one of the newest in sword technologies, perfected by my company ZenDustry™ Inc."
 			},
-			{speaker: "Ren", text: "I'll take the ZenBlade."},
-			{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.`},
+			{ speaker: "Ren", text: "I'll take the ZenBlade." },
+			{ speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.` },
 			{
 				speaker: "Ren",
 				text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."
 			},
-			{speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses."},
+			{ speaker: "Zen - Shopkeeper", text: "Thank you for supporting local businesses." },
 		]
 		let health_upgrade_dialogue = [
-			{speaker: "Ren", text: "What is this?"},
-			{speaker: "Zen - Shopkeeper", text: "It's a health upgrade, it'll increase your maximum health by 1"},
-			{speaker: "Ren", text: "I didn't even know that was possible!"},
+			{ speaker: "Ren", text: "What is this?" },
+			{ speaker: "Zen - Shopkeeper", text: "It's a health upgrade, it'll increase your maximum health by 1" },
+			{ speaker: "Ren", text: "I didn't even know that was possible!" },
 			{
 				speaker: "Zen - Shopkeeper",
 				text: "It was possible due to recent ZenDustry™ Inc. advancements in health technology."
@@ -976,9 +976,9 @@ function game() {
 				speaker: "Zen - Shopkeeper",
 				text: "But research isn't free, you know. My scientists have to eat, and so do I. It's not like food grows on trees."
 			},
-			{speaker: "Ren", text: "But food does grow on trees..."},
-			{speaker: "Zen - Shopkeeper", text: "Bah, kids these days..."},
-			{speaker: "Zen - Shopkeeper", text: `That'll be ${maxHealthUpgradeCost} coins.`},
+			{ speaker: "Ren", text: "But food does grow on trees..." },
+			{ speaker: "Zen - Shopkeeper", text: "Bah, kids these days..." },
+			{ speaker: "Zen - Shopkeeper", text: `That'll be ${maxHealthUpgradeCost} coins.` },
 			{
 				speaker: "Ren",
 				text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Oof, that was a lot of money. Now what am 𝑰 going to eat?"
@@ -989,28 +989,28 @@ function game() {
 			},
 		]
 		let heal_potion_dialogue = [
-			{speaker: "Ren", text: "What is this?"},
-			{speaker: "Zen - Shopkeeper", text: "It's a healing potion, it'll heal you for 3 hearts."},
-			{speaker: "Ren", text: "I'll take one."},
-			{speaker: "Zen - Shopkeeper", text: `Alright, that'll be ${healPotionCost} coins.`},
+			{ speaker: "Ren", text: "What is this?" },
+			{ speaker: "Zen - Shopkeeper", text: "It's a healing potion, it'll heal you for 3 hearts." },
+			{ speaker: "Ren", text: "I'll take one." },
+			{ speaker: "Zen - Shopkeeper", text: `Alright, that'll be ${healPotionCost} coins.` },
 			{
 				speaker: "Ren",
 				text: (money.value >= healPotionCost * 2) ? "What an affordable price!" : "Why are these so expensive, It's almost like you're trying to make a profit."
 			},
-			{speaker: "Zen - Shopkeeper", text: "It's a free market."},
+			{ speaker: "Zen - Shopkeeper", text: "It's a free market." },
 			{
 				speaker: "Ren",
 				text: "If it was a free market, couldn't you just give me the market for free? Besides, you're a monopoly. "
 			},
-			{speaker: "Zen - Shopkeeper", text: "Think of it like you're supporting a local business."},
-			{speaker: "Ren", text: "I don't even know where we are. How can you be local?"},
-			{speaker: "Ren", text: "Besides, where do you even go between waves?"},
+			{ speaker: "Zen - Shopkeeper", text: "Think of it like you're supporting a local business." },
+			{ speaker: "Ren", text: "I don't even know where we are. How can you be local?" },
+			{ speaker: "Ren", text: "Besides, where do you even go between waves?" },
 		]
 		let shotgun_damage_dialogue = [
-			{speaker: "Ren", text: "My shotgun is too weak. It isn't damaging the enemies enough. "},
-			{speaker: "Zen - Shopkeeper", text: `I'll can make your shotgun more powerful...`},
-			{speaker: "Ren", text: "Alright, bet!"}, // slang for "I agree"
-			{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunDamageUpgradeCost} coins`},
+			{ speaker: "Ren", text: "My shotgun is too weak. It isn't damaging the enemies enough. " },
+			{ speaker: "Zen - Shopkeeper", text: `I'll can make your shotgun more powerful...` },
+			{ speaker: "Ren", text: "Alright, bet!" }, // slang for "I agree"
+			{ speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunDamageUpgradeCost} coins` },
 			{
 				speaker: "Ren",
 				text: (money.value >= shotgunDamageUpgradeCost * 2) ? "That's a decent price." : "That much? It's almost like you're hammering coins into my shotgun!"
@@ -1021,9 +1021,9 @@ function game() {
 				speaker: "Ren",
 				text: "I need more bullets in my shotgun. It's not enough. There's too many of those red frowning guys out there."
 			},
-			{speaker: "Zen - Shopkeeper", text: "I have just the solution for your problems. More bullets!!!"},
-			{speaker: "Ren", text: "I love America!!! 🇺🇸🇺🇸🇺🇸🦅🦅🦅🔫🔫🔫"},
-			{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins`},
+			{ speaker: "Zen - Shopkeeper", text: "I have just the solution for your problems. More bullets!!!" },
+			{ speaker: "Ren", text: "I love America!!! 🇺🇸🇺🇸🇺🇸🦅🦅🦅🔫🔫🔫" },
+			{ speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins` },
 			{
 				speaker: "Ren",
 				text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!" : "That's a lot of money. I could buy a lot of pineapples with that."
@@ -1036,8 +1036,8 @@ function game() {
 			// if you already bought sword upgrade, reduce the dialogue to only essentials
 			if (swordUpgradeCost != 20) {
 				sword_upgrade_dialogue = [
-					{speaker: "Ren", text: "Can you upgrade my sword again?"},
-					{speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.`},
+					{ speaker: "Ren", text: "Can you upgrade my sword again?" },
+					{ speaker: "Zen - Shopkeeper", text: `That'll be ${swordUpgradeCost} coins.` },
 					{
 						speaker: "Ren",
 						text: (money.value >= swordUpgradeCost * 2) ? "What a good price!" : "Man, that was a lot of money."
@@ -1052,8 +1052,8 @@ function game() {
 			// if you already bought maxHealth upgrade, reduce the dialogue to only essentials
 			if (maxHealthUpgradeCost != 50) {
 				health_upgrade_dialogue = [
-					{speaker: "Ren", text: "I'm not feeling strong enough yet...Upgrade me some more!"},
-					{speaker: "Zen - Shopkeeper", text: `No problem, that'll be ${maxHealthUpgradeCost} coins.`},
+					{ speaker: "Ren", text: "I'm not feeling strong enough yet...Upgrade me some more!" },
+					{ speaker: "Zen - Shopkeeper", text: `No problem, that'll be ${maxHealthUpgradeCost} coins.` },
 					{
 						speaker: "Ren",
 						text: (money.value >= maxHealthUpgradeCost * 2) ? "That's a good price!" : "Why are scientists so expensive...Are they eating at Michelin-star restaurants?"
@@ -1068,7 +1068,7 @@ function game() {
 			// if you already bought health potion, change dialogue
 			if (healPotionCost != 10) {
 				heal_potion_dialogue = [
-					{speaker: "Ren", text: "Give me some more of that red juice! It makes me feel amazing!"},
+					{ speaker: "Ren", text: "Give me some more of that red juice! It makes me feel amazing!" },
 					{
 						speaker: "Zen - Shopkeeper",
 						text: `The customer is always right...That'll be ${healPotionCost} coins.`
@@ -1087,8 +1087,8 @@ function game() {
 			// if you already bought shotgun damage upgrade, change dialogue
 			if (shotgunDamageUpgradeCost != 50) {
 				shotgun_damage_dialogue = [
-					{speaker: "Ren", text: "Give me more power!"},
-					{speaker: "Zen - Shopkeeper", text: `Of course, for a price of ${shotgunDamageUpgradeCost} coins`},
+					{ speaker: "Ren", text: "Give me more power!" },
+					{ speaker: "Zen - Shopkeeper", text: `Of course, for a price of ${shotgunDamageUpgradeCost} coins` },
 					{
 						speaker: "Ren",
 						text: (money.value >= shotgunDamageUpgradeCost * 2) ? "That's a decent price." : "That much? It's almost like you're hammering coins into my shotgun!"
@@ -1103,12 +1103,12 @@ function game() {
 			// if you already bought shotgun magazine upgrade, change dialogue
 			if (shotgunMagazineUpgradeCost != 100) {
 				shotgun_magazine_dialogue = [
-					{speaker: "Ren", text: "I need more bullets to fit in my shotgun!"},
+					{ speaker: "Ren", text: "I need more bullets to fit in my shotgun!" },
 					{
 						speaker: "Zen - Shopkeeper",
 						text: `I have just the solution for your problems. A larger magazine!!!`
 					},
-					{speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins`},
+					{ speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins` },
 					{
 						speaker: "Ren",
 						text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."
@@ -1137,8 +1137,8 @@ function game() {
 				} else {
 					showDialogue(
 						[
-							{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-							{speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!`}
+							{ speaker: "Zen - Shopkeeper", text: "You don't have enough money for that." },
+							{ speaker: "Ren", text: `I only need ${swordUpgradeCost - money.value} more coins!` }
 						],
 						() => {
 							cleanupUpgrades()
@@ -1157,8 +1157,8 @@ function game() {
 				} else {
 					showDialogue(
 						[
-							{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-							{speaker: "Ren", text: `I only need ${maxHealthUpgradeCost - money.value} more coins!`}
+							{ speaker: "Zen - Shopkeeper", text: "You don't have enough money for that." },
+							{ speaker: "Ren", text: `I only need ${maxHealthUpgradeCost - money.value} more coins!` }
 						],
 						() => {
 							cleanupUpgrades()
@@ -1177,8 +1177,8 @@ function game() {
 				} else {
 					showDialogue(
 						[
-							{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-							{speaker: "Ren", text: `I only need ${healPotionCost - money.value} more coins!`}
+							{ speaker: "Zen - Shopkeeper", text: "You don't have enough money for that." },
+							{ speaker: "Ren", text: `I only need ${healPotionCost - money.value} more coins!` }
 						],
 						() => {
 							cleanupUpgrades()
@@ -1197,8 +1197,8 @@ function game() {
 				} else {
 					showDialogue(
 						[
-							{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
-							{speaker: "Ren", text: `I only need ${shotgunDamageUpgradeCost - money.value} more coins!`}
+							{ speaker: "Zen - Shopkeeper", text: "You don't have enough money for that." },
+							{ speaker: "Ren", text: `I only need ${shotgunDamageUpgradeCost - money.value} more coins!` }
 						],
 						() => {
 							cleanupUpgrades()
@@ -1217,7 +1217,7 @@ function game() {
 				} else {
 					showDialogue(
 						[
-							{speaker: "Zen - Shopkeeper", text: "You don't have enough money for that."},
+							{ speaker: "Zen - Shopkeeper", text: "You don't have enough money for that." },
 							{
 								speaker: "Ren",
 								text: `I only need ${shotgunMagazineUpgradeCost - money.value} more coins!`
@@ -1250,7 +1250,7 @@ function game() {
 	}
 
 	let playerTouchingShop = false;
-// shopkeeper contact listeners
+	// shopkeeper contact listeners
 	onCollide("player", "shopkeeper", () => {
 		playerTouchingShop = true
 	})
@@ -1270,9 +1270,9 @@ function game() {
 		}
 	})
 	const shop_dialogue = [
-		{speaker: "Zen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?"},
-		{speaker: "Ren", text: "What do you have in stock?"},
-		{speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!"},
+		{ speaker: "Zen - Shopkeeper", text: "Hello traveler, would you like to sample some of my wonderful wares?" },
+		{ speaker: "Ren", text: "What do you have in stock?" },
+		{ speaker: "Zen - Shopkeeper", text: "I have many wonderful items, all available for a great price!" },
 	]
 
 	function waveDone() {
@@ -1291,7 +1291,7 @@ function game() {
 			anchor("center"),
 			"wave-button",
 			"intermission",
-			{clicked: false},
+			{ clicked: false },
 		])
 		const waveListener = onClick("wave-button", () => {
 			if (button.clicked) return
@@ -1330,7 +1330,7 @@ function game() {
 				pos(glenOriginalPos),
 				area(),
 				body(),
-				offscreen({destroy: true}),
+				offscreen({ destroy: true }),
 				anchor("center"),
 				"npc",
 				"glen",
@@ -1340,18 +1340,18 @@ function game() {
 				glenListener.cancel()
 			})
 			let glen_dialogue = [
-				{speaker: "???", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."},
-				{speaker: "Ren", text: "Bro what are you saying???"},
+				{ speaker: "???", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit..." },
+				{ speaker: "Ren", text: "Bro what are you saying???" },
 				{
 					speaker: "???",
 					text: "Sorry, that was just placeholder text that the developers gave me. They still haven't removed it."
 				},
-				{speaker: "Ren", text: "What's a developer?"},
-				{speaker: "???", text: "I don't know."},
-				{speaker: "Glen", text: "By the way, My name is Glen."},
-				{speaker: "Ren", text: "Nice to meet you Glen."},
-				{speaker: "Glen", text: "Here, have this healing potion. It's on the house."},
-				{speaker: "Ren", text: "What house?"},
+				{ speaker: "Ren", text: "What's a developer?" },
+				{ speaker: "???", text: "I don't know." },
+				{ speaker: "Glen", text: "By the way, My name is Glen." },
+				{ speaker: "Ren", text: "Nice to meet you Glen." },
+				{ speaker: "Glen", text: "Here, have this healing potion. It's on the house." },
+				{ speaker: "Ren", text: "What house?" },
 				{
 					speaker: "Glen",
 					text: "I don't know, I'm homeless. I just sometimes appear here and then disappear, sent off to a black expanse of nothingness. It's boring out there."
@@ -1367,7 +1367,7 @@ function game() {
 				const dir = glenOriginalPos.sub(glen.pos).unit();
 				const speed = 100; // Adjust speed as needed
 				if (distance(glenOriginalPos, glen.pos) > 100) {
-					showDialogue([{speaker: "Glen", text: "Hey, stop pushing me!"}])
+					showDialogue([{ speaker: "Glen", text: "Hey, stop pushing me!" }])
 				}
 				glen.onUpdate(() => {
 					if (glen.pos.dist(glenOriginalPos) > 1) {
@@ -1390,7 +1390,7 @@ function game() {
 					})
 				} else if (touchingGlen) {
 					showDialogue([
-						{speaker: "Glen", text: "Bro, I'm not going to give you more free stuff"}
+						{ speaker: "Glen", text: "Bro, I'm not going to give you more free stuff" }
 					])
 				}
 			})
@@ -1414,7 +1414,7 @@ function game() {
 			scale(3),
 			fadeIn(1),
 			opacity(1),
-			lifespan(2.5, {fade: 0.5}),
+			lifespan(2.5, { fade: 0.5 }),
 		])
 
 		enemiesLeft = Math.floor((baseEnemies * currentWave) + (difficulty * currentWave))
@@ -1435,10 +1435,33 @@ function game() {
 	spawnWave()
 
 }
-
+var guideVisible = false;
+function showGuide() {
+	const guideElements = get("guide")
+	guideElements.forEach(function(element) {
+		element.opacity = 1
+		element.z = 999
+	})
+	get("guide-background").forEach((element) => {
+		element.opacity = 0.7
+		element.z = 100
+	})
+	guideVisible = true
+}
+function hideGuide() {
+	const guideElements = get("guide")
+	guideElements.forEach((element) => {
+		element.opacity = 0
+		element.z = 0
+	})
+	get("guide-background").forEach((element) => {
+		element.opacity = 0
+	})
+	guideVisible = false
+}
 const title = add([
 	sprite("title"),
-	pos(center().sub(0,300)),
+	pos(center().sub(0, height() / 3)),
 	anchor("center"),
 	scale(0.5),
 	opacity(0),
@@ -1447,16 +1470,35 @@ const title = add([
 ])
 add([
 	rect(width(), height()),
-	pos(0,0),
+	pos(0, 0),
+	anchor("topleft"),
+	z(1),
+	color(rgb(0, 0, 0)),
+	opacity(0),
+	"guide",
+	"guide-background",
+])
+add([
+	rect(width(), height()),
+	pos(0, 0),
 	anchor("topleft"),
 	z(-1),
-	color(rgb(0,0,0)),
+	color(rgb(0, 0, 0)),
 	"title",
 ])
 const spacetostart = add([
 	text("Press space to start"),
-	color(rgb(255,255,255)),
-	pos(center().add(0, 300)),
+	color(rgb(255, 255, 255)),
+	pos(center().add(0, height() / 3)),
+	anchor("center"),
+	opacity(0),
+	"title",
+	"title-text",
+])
+const gtoguide = add([
+	text("press G to view guide"),
+	color(rgb(255, 255, 255)),
+	pos(center().add(0, height() / 2.25)),
 	anchor("center"),
 	opacity(0),
 	"title",
@@ -1467,17 +1509,17 @@ const wasd = add([
 	pos(center().add(-150, -200)),
 	anchor("center"),
 	opacity(0),
-	scale(0.25),
-	color(rgb(255,255,255)),
-	"title","title-text",
+	scale(0.2),
+	color(rgb(255, 255, 255)),
+	"title", "guide", "title-text",
 ])
 const wasd_text = add([
 	text("use WASD to move"),
 	pos(center().add(150, -200)),
 	opacity(0),
-	color(rgb(255,255,255)),
+	color(rgb(255, 255, 255)),
 	anchor("center"),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const e_key = add([
 	sprite("e"),
@@ -1485,37 +1527,37 @@ const e_key = add([
 	anchor("center"),
 	scale(0.1),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const e_key_text = add([
 	text("press E to interact"),
 	pos(center().add(150, -125)),
 	anchor("center"),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const r_key = add([
 	sprite("r"),
 	pos(center().add(-150, -25)),
 	anchor("center"),
-	scale(0.25),
+	scale(0.2),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const r_key_text = add([
 	text("press R to reload"),
 	pos(center().add(150, -25)),
 	anchor("center"),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const tab_key = add([
 	sprite("tab"),
 	pos(center().add(-150, 75)),
 	anchor("center"),
-	scale(0.25),
+	scale(0.2),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const tab_key_text = add([
 	text("press tab to switch weapons"),
@@ -1523,47 +1565,46 @@ const tab_key_text = add([
 	anchor("center"),
 	opacity(0),
 	scale(0.8),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const mouse = add([
 	sprite("mouse"),
 	pos(center().add(-150, 175)),
 	anchor("center"),
-	scale(0.25),
+	scale(0.2),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 const mouse_text = add([
 	text("click to attack"),
 	pos(center().add(150, 175)),
 	anchor("center"),
 	opacity(0),
-	"title","title-text",
+	"title", "guide", "title-text",
 ])
 play("whoosh")
 const titleMusic = play("title-music")
 async function tweenTitle() {
-	tween(0, 0.5, 1, (val) => title.scale = new Vec2(val,val), easings.easeInBounce)
+	tween(0, 0.5, 1, (val) => title.scale = new Vec2(val, val), easings.easeInBounce)
 	await tween(0, 1, 1, (val) => title.opacity = val, easings.easeInQuad)
 }
 tweenTitle().then(() => {
-	spacetostart.opacity = 1;
-	wasd.opacity = 1
-	wasd_text.opacity = 1
-	e_key.opacity = 1
-	e_key_text.opacity = 1
-	r_key.opacity = 1
-	r_key_text.opacity = 1
-	tab_key.opacity = 1
-	tab_key_text.opacity = 1
-	mouse.opacity = 1
-	mouse_text.opacity = 1
+	spacetostart.opacity = 1
+	gtoguide.opacity = 1
+	onKeyPress("g", () => {
+		showGuide()
+	})
+	onKeyRelease("g", () => {
+		hideGuide()
+	})
 })
+
+
 
 const startGameListener = onKeyPress("space", async () => {
 	startGameListener.cancel()
 	destroyAll("title-text")
-	tween(0.5, 0, 2, (val) => title.scale = new Vec2(val,val), easings.easeOutBounce)
+	tween(0.5, 0, 2, (val) => title.scale = new Vec2(val, val), easings.easeOutBounce)
 	await tween(1, 0, 2, (val) => title.opacity = val, easings.easeOutQuad)
 	destroyAll("title")
 	titleMusic.stop()
