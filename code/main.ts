@@ -1,14 +1,14 @@
 /* todo:
-	* fix rounding errors
+	* fix text looking weird on small screens
 	* inventory system???
 */
 //@ts-ignore
-import kaboom from "kaboom"
-import "kaboom/global"
+import kaplay from "kaplay"
+import "kaplay/global"
 
 
 // initialize context
-kaboom()
+kaplay()
 
 // load assets
 loadSprite("title", "sprites/logo.png")
@@ -62,6 +62,7 @@ loadFont("apl386", "fonts/APL386.ttf", { outline: 2 })
 
 
 function game() {
+
 	const SPEED = 320;
 	const ENEMY_SPEED = 160
 	const BULLET_SPEED = 800
@@ -557,6 +558,7 @@ function game() {
 						area(),
 						offscreen({ destroy: true }),
 						rotate((vectorAngle(dir) * 180 / Math.PI) + 90),
+						opacity(1),
 						lifespan(1, { fade: 0.75 }),
 						anchor("center"),
 						{ damage: shotgun.damage },
@@ -1435,7 +1437,7 @@ function game() {
 	spawnWave()
 
 }
-var guideVisible = false;
+
 function showGuide() {
 	const guideElements = get("guide")
 	guideElements.forEach(function(element) {
@@ -1446,7 +1448,7 @@ function showGuide() {
 		element.opacity = 0.7
 		element.z = 100
 	})
-	guideVisible = true
+
 }
 function hideGuide() {
 	const guideElements = get("guide")
@@ -1457,7 +1459,7 @@ function hideGuide() {
 	get("guide-background").forEach((element) => {
 		element.opacity = 0
 	})
-	guideVisible = false
+
 }
 const title = add([
 	sprite("title"),
@@ -1476,6 +1478,7 @@ add([
 	color(rgb(0, 0, 0)),
 	opacity(0),
 	"guide",
+	"title",
 	"guide-background",
 ])
 add([
@@ -1588,13 +1591,15 @@ async function tweenTitle() {
 	tween(0, 0.5, 1, (val) => title.scale = new Vec2(val, val), easings.easeInBounce)
 	await tween(0, 1, 1, (val) => title.opacity = val, easings.easeInQuad)
 }
+let gListener
+let gListener2
 tweenTitle().then(() => {
 	spacetostart.opacity = 1
 	gtoguide.opacity = 1
-	onKeyPress("g", () => {
+	gListener = onKeyPress("g", () => {
 		showGuide()
 	})
-	onKeyRelease("g", () => {
+	gListener2 = onKeyRelease("g", () => {
 		hideGuide()
 	})
 })
@@ -1608,5 +1613,7 @@ const startGameListener = onKeyPress("space", async () => {
 	await tween(1, 0, 2, (val) => title.opacity = val, easings.easeOutQuad)
 	destroyAll("title")
 	titleMusic.stop()
+	gListener.cancel()
+	gListener2.cancel()
 	game()
 })
