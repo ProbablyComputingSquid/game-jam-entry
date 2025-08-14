@@ -2,7 +2,7 @@
 	* fix text looking weird on small screens
 	* inventory system???
 */
-//@ts-ignore
+
 import kaplay from "kaplay"
 import "kaplay/global"
 
@@ -62,7 +62,6 @@ loadFont("apl386", "fonts/APL386.ttf", { outline: 2 })
 
 
 function game() {
-
 	const SPEED = 320;
 	const ENEMY_SPEED = 160
 	const BULLET_SPEED = 800
@@ -279,7 +278,6 @@ function game() {
 			enemy.enterState("attack")
 		})
 		// When we enter "attack" state, we fire a bullet, and enter "move" state after 1 sec
-		// @ts-ignore
 		enemy.onStateEnter("attack", async () => {
 			// Don't do anything if player doesn't exist anymore
 			if (player.exists() && enemy.exists()) {
@@ -478,10 +476,7 @@ function game() {
 		opacity(0),
 		{
 			reloading: false,
-			reloadTime: 3,
-			shells: 3,
-			magazine: 3,
-			damage: 1,
+			reloadTime: 3, shells: 3, magazine: 3, damage: 1,
 		},
 		"shotgun",
 	])
@@ -1113,13 +1108,13 @@ function game() {
 					{ speaker: "Zen - Shopkeeper", text: `That'll be ${shotgunMagazineUpgradeCost} coins` },
 					{
 						speaker: "Ren",
-						text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."
+						text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being exercised!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."
 					}
 				]
 			} else {
 				shotgun_magazine_dialogue[4] = {
 					speaker: "Ren",
-					text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being excersized!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."
+					text: (money.value >= shotgunMagazineUpgradeCost * 2) ? "My constitutional rights are being exercised!🇺🇸🇺🇸🇺🇸🦅🦅🦅" : "That's a lot of money. I could buy a lot of pineapples with that."
 				}
 			}
 		}

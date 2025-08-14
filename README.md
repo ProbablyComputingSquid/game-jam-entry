@@ -3,18 +3,10 @@ A simple wave-based endless hack-and-slash made with kaboom for the [official jo
 I couldn't afford to host it somewhere, so sadly, you have to run it locally. 
 
 ## How to Run ##
-### Using Replit ###
-
-1. Click the Run on Replit button
-2. Change the run command to `node run.js` (it will ask you for a run command)
-3. Hit run, and the server will start. A webview should pop up on the side.
-4. Enjoy the game!
-5. Vote for my project (optional, but it really helps!)
-[![Run on Repl.it](https://repl.it/badge/github/ProbablyComputingSquid/game-jam-entry)](https://repl.it/github/ProbablyComputingSquid/game-jam-entry)
-
-(update: replit changed some TOS and user limits, so now the platform sucks, so idk)
+## New! Run in the browser! ##
+1. Go to this repository's github page [here](https://github.com/ProbablyComputingSquid/game-jam-entry)
+2. That's it! You can now play the game in your browser with no setup needed!
 ## Running locally ##
-
 1. Clone the repository into your favorite IDE (I personally use WebStorm)
 2. run `npm install` in the terminal so you get all your dependencies installed
 3. run `node run.js` in the terminal to start the server

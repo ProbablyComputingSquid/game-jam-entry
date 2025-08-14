@@ -6,16 +6,12 @@ const esbuild = require("esbuild");
 const express = require("express");
 const ws = require("ws");
 const http = require("http");
-const Database = require("@replit/database");
-const multiplayer = require("./multiplayer");
-const db = new Database();
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 8000;
 let err = null;
 
-// start multiplayer server
-multiplayer(server);
+
 
 // build user game
 function buildGame() {
