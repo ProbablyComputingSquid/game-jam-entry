@@ -9,5 +9,12 @@
 		"stacktrace-js": "^2.0.2",
 		"webpack-cli": "^5.1.4",
 		"ws": "^8.2.0"
+	},
+	"scripts": {
+		"build": "esbuild main.ts > build.js --minify --bundle",
+		"dev": "esbuild main.ts --bundle --sourcemap --watch",
+		"preview": "vite preview",
+		"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
+		"check": "tsc"
 	}
 }
